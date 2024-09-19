@@ -1,3 +1,3 @@
 
-def main(args: list[str]):
+def main(argv: list[str]):
     print("sync")
