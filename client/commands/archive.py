@@ -1,8 +1,6 @@
 import logging
 import argparse
 import pathlib
-import tempfile
-import shutil
 import subprocess
 import platform
 import getpass
@@ -23,45 +21,47 @@ def exec(cmd: list[str], dry_run: bool):
     else:
         log.info("dry_run")
 
-def unix_main(args: argparse.Namespace):
-    log.info("archive for linux")
+def is_win():
+    system = platform.system()
+    return system == "Windows"
 
+def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
+    try:
+        # -C: change to directory DIR
+        # -c: Create new.
+        # -f: Specify file name.
+        cmd = ["tar", "-C", str(src), "-cf", str(ar_dst)] + TAR_OPTS + ["."]
+        exec(cmd, dry_run)
+    except:
+        ar_dst.unlink(missing_ok=True)
+        raise
+
+def archive(args: argparse.Namespace):
     # get user@host and datetime for archive file name
     user = getpass.getuser()
     host = platform.node()
     dt_now = datetime.datetime.now()
     dt_str = dt_now.strftime('%Y%m%d%H%M')
 
-    if not args.src or not args.dst:
-        raise RuntimeError("SRC and DST are required")
+    # ensure SRC is dir and mkdir DST
     src = pathlib.Path(args.src).expanduser().resolve()
     if not src.is_dir():
         raise RuntimeError("SRC must be a directory")
     dst = pathlib.Path(args.dst).expanduser().resolve()
     dst.mkdir(parents=True, exist_ok=True)
+    if not dst.is_dir():
+        raise RuntimeError("DST must be a directory")
     log.info(f"mkdir: {dst}")
     ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT}"
     log.info(f"SRC: {src}")
     log.info(f"DST: {ar_dst}")
 
-    with tempfile.NamedTemporaryFile(suffix=f".{EXT}") as tf:
-        log.info(f"temp file created: {tf.name}")
-        # -C: change to directory DIR
-        # -a: Use archive suffix to determine the compression program.
-        # -c: Create new.
-        # -f: Specify file name.
-        cmd = ["tar", "-C", str(src), "-acf", tf.name] + TAR_OPTS + ["."]
-        exec(cmd, args.dry_run)
+    if is_win():
+        pass
+    else:
+        archive_unix_bz2(src, ar_dst, args.dry_run)
 
-        log.info(f"copy {tf.name} -> {ar_dst}")
-        shutil.copyfile(tf.name, str(ar_dst))
-        log.info(f"delete temp file: {tf.name}")
-        # close and delete
     log.info(f"OK: {ar_dst}")
-
-def win_main():
-    log.info("archive for windows")
-    assert False, "Not implemented"
 
 def main(argv: list[str]):
     parser = argparse.ArgumentParser(
@@ -77,8 +77,9 @@ def main(argv: list[str]):
 
     args = simpletoml.parse_with_toml(parser, argv[1:])
 
-    system = platform.system()
-    if system == "Windows":
-        win_main()
-    else:
-        unix_main(args)
+    if not args.src or not args.dst:
+        parser.print_help()
+        print()
+        raise RuntimeError("SRC and DST are required")
+
+    archive(args)
