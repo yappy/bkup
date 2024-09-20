@@ -34,6 +34,12 @@ def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
         # -f: Specify file name.
         cmd = ["tar", "-C", str(src), "-cf", str(ar_dst)] + TAR_OPTS + ["."]
         exec(cmd, dry_run)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 1:
+            # Warning (Non fatal error(s)).
+            log.warning("tar exit with warning(s)")
+        else:
+            raise
     except:
         log.error("Exec tar with pbzip2 error.")
         log.error("[Hint] Did you install pbzip2 (parallel bzip2)?")
