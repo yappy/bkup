@@ -2,6 +2,14 @@
 
 import sys
 import commands
+import logging
+
+def log_init():
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)8s:%(name)16s:%(lineno)4s: %(message)s',
+        level=logging.INFO,
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
 
 def usage(argv0: str):
     print(f"{argv0} SUBCMD [args...]")
@@ -11,6 +19,8 @@ def usage(argv0: str):
         print(f"    {desc}")
 
 def main(argv: list[str]):
+    log_init()
+
     if len(argv) < 2 or argv[1] == "--help" or argv[1] == "-h":
         usage(argv[0])
         sys.exit(0)

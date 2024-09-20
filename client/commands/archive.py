@@ -1,12 +1,66 @@
+import logging
 import argparse
+import pathlib
+import tempfile
+import shutil
+import subprocess
 import platform
-import tomllib
+import getpass
+import datetime
 from . import simpletoml
 
-def unix_main():
-    assert False, "Not implemented"
+log = logging.getLogger(__name__)
+
+CMD_UNIX = "tar"
+CMD_WIN = "tar.exe"
+EXT = "tar.bz2"
+TAR_OPTS = ["--use-compress-prog=pbzip2"]
+
+def exec(cmd: list[str], dry_run: bool):
+    log.info(f"EXEC: {' '.join(cmd)}")
+    if not dry_run:
+        subprocess.run(cmd, check=True)
+    else:
+        log.info("dry_run")
+
+def unix_main(args: argparse.Namespace):
+    log.info("archive for linux")
+
+    # get user@host and datetime for archive file name
+    user = getpass.getuser()
+    host = platform.node()
+    dt_now = datetime.datetime.now()
+    dt_str = dt_now.strftime('%Y%m%d%H%M')
+
+    if not args.src or not args.dst:
+        raise RuntimeError("SRC and DST are required")
+    src = pathlib.Path(args.src).expanduser().resolve()
+    if not src.is_dir():
+        raise RuntimeError("SRC must be a directory")
+    dst = pathlib.Path(args.dst).expanduser().resolve()
+    dst.mkdir(parents=True, exist_ok=True)
+    log.info(f"mkdir: {dst}")
+    ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT}"
+    log.info(f"SRC: {src}")
+    log.info(f"DST: {ar_dst}")
+
+    with tempfile.NamedTemporaryFile(suffix=f".{EXT}") as tf:
+        log.info(f"temp file created: {tf.name}")
+        # -C: change to directory DIR
+        # -a: Use archive suffix to determine the compression program.
+        # -c: Create new.
+        # -f: Specify file name.
+        cmd = ["tar", "-C", str(src), "-acf", tf.name] + TAR_OPTS + ["."]
+        exec(cmd, args.dry_run)
+
+        log.info(f"copy {tf.name} -> {ar_dst}")
+        shutil.copyfile(tf.name, str(ar_dst))
+        log.info(f"delete temp file: {tf.name}")
+        # close and delete
+    log.info(f"OK: {ar_dst}")
 
 def win_main():
+    log.info("archive for windows")
     assert False, "Not implemented"
 
 def main(argv: list[str]):
@@ -27,4 +81,4 @@ def main(argv: list[str]):
     if system == "Windows":
         win_main()
     else:
-        unix_main()
+        unix_main(args)

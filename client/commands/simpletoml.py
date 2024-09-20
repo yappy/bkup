@@ -1,8 +1,8 @@
 import tomllib
-import argparse
 import sys
+import argparse
 
-def _as_toml_value(v):
+def _as_toml_value(v) -> str:
     vstr = ""
     if v is None:
         raise ValueError("None is not allowed")
@@ -23,7 +23,7 @@ def _as_toml_value(v):
 
     return vstr
 
-def as_toml(obj: dict):
+def as_toml(obj: dict) -> str:
     """Convert given dict into TOML string.
     """
     toml = ""
@@ -35,14 +35,14 @@ def as_toml(obj: dict):
 
     return toml
 
-def as_toml_comment(s: str):
+def as_toml_comment(s: str) -> str:
     toml = ""
     for line in s.splitlines():
         toml += f"# {line}\n"
 
     return toml
 
-def parse_with_toml(parser: argparse.ArgumentParser, args: list[str]):
+def parse_with_toml(parser: argparse.ArgumentParser, argv1: list[str]) -> argparse.Namespace:
     """Execute parse, then if --toml or --print-toml is specified,
     do appropriate things.
 
@@ -52,14 +52,14 @@ def parse_with_toml(parser: argparse.ArgumentParser, args: list[str]):
     assert parser.get_default("toml") is not None
     assert parser.get_default("print_toml") is not None
 
-    args = parser.parse_args(args)
+    args = parser.parse_args(argv1)
 
     # if --toml, set it as defaults and parse again
     if args.toml:
         with open(args.toml, "rb") as f:
             data = tomllib.load(f)
             parser.set_defaults(**data)
-            args = parser.parse_args(args)
+            args = parser.parse_args(argv1)
 
     if args.print_toml:
         toml = as_toml_comment(parser.format_help())
