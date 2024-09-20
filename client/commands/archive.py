@@ -6,7 +6,6 @@ import os
 import platform
 import getpass
 import datetime
-from . import simpletoml
 
 log = logging.getLogger(__name__)
 
@@ -22,10 +21,6 @@ def exec(cmd: list[str], dry_run: bool):
         subprocess.run(cmd, check=True)
     else:
         log.info("dry_run")
-
-def is_win():
-    system = platform.system()
-    return system == "Windows"
 
 def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
     try:
@@ -83,7 +78,7 @@ def archive(args: argparse.Namespace):
     log.info(f"mkdir: {dst}")
     log.info(f"SRC: {src}")
 
-    if is_win():
+    if platform.system() == "Windows":
         ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
         log.info(f"DST: {ar_dst}")
         archive_win_7z(src, ar_dst, args.dry_run)
@@ -97,16 +92,13 @@ def archive(args: argparse.Namespace):
 def main(argv: list[str]):
     parser = argparse.ArgumentParser(
         prog = argv[0],
-        description="Archive and compress directory",
+        description="Archive and compress a directory",
     )
     parser.add_argument("--src", default="", help="backup source dir")
     parser.add_argument("--dst", default="", help="backup destination dir")
-    parser.add_argument("--exclude-dir", default=[], action="append", help="exclude dir pattern")
     parser.add_argument("--dry_run", "-d", action="store_true", help="dry run")
-    parser.add_argument("--print-toml", action="store_true", help="output TOML file with default parameters")
-    parser.add_argument("--toml", default="", help="read paratemers from TOML")
 
-    args = simpletoml.parse_with_toml(parser, argv[1:])
+    args = parser.parse_args(argv[1:])
 
     if not args.src or not args.dst:
         parser.print_help()

@@ -32,6 +32,12 @@ Microsoft 公式が出していたよさげなディレクトリ同期ツール�
 winget でインストール可能。
 コマンドライン版も入る。
 
+#### Python shutil.copytree()
+
+マルチプラットフォーム性がある。
+メタデータのコピーがどこまでちゃんとしているかは不明。
+同期 (コピー先からの削除) 機能はない。
+
 ### 圧縮
 
 zip は ZIP64 (>2GB) 対応と UTF-8 対応が怪しいレガシーシステムが
@@ -63,37 +69,6 @@ libarchive を使用しており、zip も展開できる(できた)。
 zip で圧縮する方法があるのかは不明。
 また、bzip2 や xz で圧縮しようとすると外部プログラムが見つからずにエラーになってしまう。
 初期状態では圧縮は gzip 限定かつシングルスレッドに見える。
-
-```text
-> tar --version
-bsdtar 3.5.2 - libarchive 3.5.2 zlib/1.2.5.f-ipp
-
-> tar --help
-tar.exe(bsdtar): manipulate archive files
-First option must be a mode specifier:
-  -c Create  -r Add/Replace  -t List  -u Update  -x Extract
-Common Options:
-  -b #  Use # 512-byte records per I/O block
-  -f <filename>  Location of archive (default \\.\tape0)
-  -v    Verbose
-  -w    Interactive
-Create: tar.exe -c [options] [<file> | <dir> | @<archive> | -C <dir> ]
-  <file>, <dir>  add these items to archive
-  -z, -j, -J, --lzma  Compress archive with gzip/bzip2/xz/lzma
-  --format {ustar|pax|cpio|shar}  Select archive format
-  --exclude <pattern>  Skip files that match pattern
-  -C <dir>  Change to <dir> before processing remaining files
-  @<archive>  Add entries from <archive> to output
-List: tar.exe -t [options] [<patterns>]
-  <patterns>  If specified, list only entries that match
-Extract: tar.exe -x [options] [<patterns>]
-  <patterns>  If specified, extract only entries that match
-  -k    Keep (don't overwrite) existing files
-  -m    Don't restore modification times
-  -O    Write entries to stdout, don't restore to disk
-  -p    Restore permissions (including ACLs, owner, file flags)
-bsdtar 3.5.2 - libarchive 3.5.2 zlib/1.2.5.f-ipp
-```
 
 #### 7-zip
 
@@ -132,6 +107,20 @@ WSL 内の python は VM 跨ぎのファイルシステムとなるため非推�
 
 ```bat
 python -m zipfile --help
+```
+
+#### Python shutil.make_archive()
+
+`shutil.make_archive()` でかなり簡単にディレクトリを丸ごと圧縮できる。
+主要な形式にはほぼすべて対応している。
+ただし細かいオプションはほとんどない雰囲気。
+マルチプラットフォーム性はある。
+並列性については不明。
+
+```python
+>>> import shutil
+>>> shutil.get_archive_formats()
+[('bztar', "bzip2'ed tar-file"), ('gztar', "gzip'ed tar-file"), ('tar', 'uncompressed tar file'), ('xztar', "xz'ed tar-file"), ('zip', 'ZIP file')]
 ```
 
 ### 自動起動
