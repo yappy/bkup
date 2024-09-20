@@ -2,6 +2,7 @@ import logging
 import argparse
 import pathlib
 import subprocess
+import os
 import platform
 import getpass
 import datetime
@@ -10,8 +11,9 @@ from . import simpletoml
 log = logging.getLogger(__name__)
 
 CMD_UNIX = "tar"
-CMD_WIN = "tar.exe"
-EXT = "tar.bz2"
+CMD_WIN = "%ProgramFiles%\\7-Zip\\7z.exe"
+EXT_UNIX = "tar.bz2"
+EXT_WIN = "7z"
 TAR_OPTS = ["--use-compress-prog=pbzip2"]
 
 def exec(cmd: list[str], dry_run: bool):
@@ -33,6 +35,27 @@ def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
         cmd = ["tar", "-C", str(src), "-cf", str(ar_dst)] + TAR_OPTS + ["."]
         exec(cmd, dry_run)
     except:
+        log.error("Exec tar with pbzip2 error.")
+        log.error("[Hint] Did you install pbzip2 (parallel bzip2)?")
+        log.error("e.g. $ sudo apt install pbzip2")
+        ar_dst.unlink(missing_ok=True)
+        raise
+
+def archive_win_7z(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
+    prog = os.path.expandvars(CMD_WIN)
+    try:
+        cmd = [prog, "a", str(ar_dst), str(src)]
+        exec(cmd, dry_run)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 1:
+            # Warning (Non fatal error(s)).
+            log.warning("7z exit with warning(s)")
+        else:
+            raise
+    except:
+        log.error("Exec 7z error.")
+        log.error("[Hint] Did you install 7z?")
+        log.error("e.g. $ winget install 7zip")
         ar_dst.unlink(missing_ok=True)
         raise
 
@@ -52,13 +75,15 @@ def archive(args: argparse.Namespace):
     if not dst.is_dir():
         raise RuntimeError("DST must be a directory")
     log.info(f"mkdir: {dst}")
-    ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT}"
     log.info(f"SRC: {src}")
-    log.info(f"DST: {ar_dst}")
 
     if is_win():
-        pass
+        ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
+        log.info(f"DST: {ar_dst}")
+        archive_win_7z(src, ar_dst, args.dry_run)
     else:
+        ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_UNIX}"
+        log.info(f"DST: {ar_dst}")
         archive_unix_bz2(src, ar_dst, args.dry_run)
 
     log.info(f"OK: {ar_dst}")
