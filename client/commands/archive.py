@@ -92,17 +92,12 @@ def archive(args: argparse.Namespace):
 def main(argv: list[str]):
     parser = argparse.ArgumentParser(
         prog = argv[0],
-        description="Archive and compress a directory",
+        description="Archive and compress a directory (Linux: tar.bz2, Windows: 7z)",
     )
-    parser.add_argument("--src", default="", help="backup source dir")
-    parser.add_argument("--dst", default="", help="backup destination dir")
+    parser.add_argument("--src", required=True, help="backup source dir")
+    parser.add_argument("--dst", required=True, help="backup destination dir")
     parser.add_argument("--dry_run", "-d", action="store_true", help="dry run")
 
     args = parser.parse_args(argv[1:])
-
-    if not args.src or not args.dst:
-        parser.print_help()
-        print()
-        raise RuntimeError("SRC and DST are required")
 
     archive(args)
