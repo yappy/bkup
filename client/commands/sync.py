@@ -41,7 +41,7 @@ def robocopy_one(src: pathlib.Path, dst: pathlib.Path, exclude_file: list[str], 
         cmd += ["/XD"]
         cmd += exclude_dir
     if dry_run:
-        cmd += ["/L"]
+        cmd.append("/L")
 
     if not force:
         # + /QUIT
@@ -52,8 +52,10 @@ def robocopy_one(src: pathlib.Path, dst: pathlib.Path, exclude_file: list[str], 
         log.warning("OK? (y/N)")
         ans = input()
         if ans != "y" and ans != "Y":
+            log.info("Cancelled")
             return
 
+    log.info(f"EXEC: {' '.join(cmd)}")
     proc = subprocess.run(cmd, check=False)
     log.info(f"Robocopy returned: {proc.returncode}")
     if proc.returncode >= 8:
@@ -63,9 +65,13 @@ def rsync(src_list: list[pathlib.Path], dst: pathlib.Path, exclude: list[str], d
     # command and -param
     cmd = [
         "rsync",
-        # archive mode (=-rlptgoD)
-        "-a"
+        # archive mode (=-rlptgoD), verbose
+        "-av",
+        # sync (delete if src does not contain)
+        "--delete",
     ]
+    if dry_run:
+        cmd.append("-n")
     # SRC and DST are checked by 'required' option in parse.
     # But check again because rsync dst will be destroyed ant it is dangerous.
     assert type(src_list) is list and all((isinstance(src, os.PathLike) for src in src_list))
@@ -76,6 +82,18 @@ def rsync(src_list: list[pathlib.Path], dst: pathlib.Path, exclude: list[str], d
     cmd.append(str(dst))
 
     print(cmd)
+    if not force and not dry_run:
+        log.warning("Caution!")
+        log.warning("--delete option may destruct the destination dir.")
+        log.warning("(You can skip this by --force option for automation)")
+        log.warning("OK? (y/N)")
+        ans = input()
+        if ans != "y" and ans != "Y":
+            log.info("Cancelled")
+            return
+
+    log.info(f"EXEC: {' '.join(cmd)}")
+    subprocess.run(cmd, check=True)
 
 def sync(args: argparse.Namespace):
     # ensure SRC is dir and mkdir DST
@@ -113,12 +131,13 @@ def main(argv: list[str]):
         description="Make a copy of file tree (Linux: rsync, Windows: robocopy)",
         epilog="Make sure of what will happen because sync operation may destruct the dest dir.",
     )
-    parser.add_argument("--src", required=True, default=[], action="append", help="backup source dir (multiple OK)")
-    parser.add_argument("--dst", required=True, help="backup destination dir")
+    parser.add_argument("--src", "-s", required=True, default=[], action="append",
+                        help="backup source dir (multiple OK) (rsync: dir/ means all entries in the dir will be copied. dir means dir directory will be copied)")
+    parser.add_argument("--dst", "-d", required=True, help="backup destination dir")
     parser.add_argument("--exclude", "-x", action="append", default=[], help="exclude pattern (rsync)")
     parser.add_argument("--exclude-file", "-xf", action="append", default=[], help="exclude file (Robocopy)")
     parser.add_argument("--exclude-dir", "-xd", action="append", default=[], help="exclude dir (Robocopy)")
-    parser.add_argument("--dry_run", "-d", action="store_true", help="dry run")
+    parser.add_argument("--dry_run", "-n", action="store_true", help="dry run")
     parser.add_argument("--force", "-f", action="store_true", help="run without confirmation")
 
     try:
