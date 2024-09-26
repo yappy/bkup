@@ -4,13 +4,15 @@ import sys
 import commands
 import logging
 
+
 def log_init():
     logging.basicConfig(
         format='%(asctime)s %(levelname)8s:%(name)16s: %(message)s',
-        #format='%(asctime)s %(levelname)8s:%(name)16s:%(lineno)4s: %(message)s',
+        # format='%(asctime)s %(levelname)8s:%(name)16s:%(lineno)4s: %(message)s',
         level=logging.INFO,
         datefmt='%Y-%m-%d %H:%M:%S',
     )
+
 
 def usage(argv0: str):
     print(f"{argv0} SUBCMD [args...]")
@@ -18,6 +20,7 @@ def usage(argv0: str):
     for _func, name, desc in commands.command_table:
         print(f"* {name}")
         print(f"    {desc}")
+
 
 def main(argv: list[str]):
     log_init()
@@ -39,6 +42,7 @@ def main(argv: list[str]):
         print()
         usage(argv[0])
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main(sys.argv)

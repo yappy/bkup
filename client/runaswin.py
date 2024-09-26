@@ -5,6 +5,7 @@ import platform
 import pathlib
 import subprocess
 
+
 # Convert WSL (Linux) path to Windows path
 # Example:
 #   /mnt/c/Windows => C:\Windows
@@ -15,6 +16,7 @@ def wslpath_to_win(wslpath):
         check=True, text=True, stdout=subprocess.PIPE, stderr=None)
     return pathlib.PureWindowsPath(proc.stdout.strip())
 
+
 def usage(argv0: str):
     print(f"""
 {argv0}: Execute python script on Windows
@@ -24,10 +26,11 @@ PYFILE and current directory will be automatically translated to Windows path.
 ARGS will be passed to the program as is.
 """[1:-1])
 
+
 def main(argv: list[str]):
     if platform.system() != "Linux":
-         print("This is WSL only")
-         sys.exit(1)
+        print("This is WSL only")
+        sys.exit(1)
 
     if len(argv) < 2:
         usage(argv[0])
@@ -48,7 +51,7 @@ def main(argv: list[str]):
         print("-" * 80)
         print(f"Error: Windows python exited with exitcode={e.returncode}")
         sys.exit(e.returncode)
-    except:
+    except BaseException:
         print("-" * 80)
         print("""
 Exec py.exe error:
@@ -60,5 +63,6 @@ Then it is needed to restart WSL.
 """[1:])
         raise
 
+
 if __name__ == '__main__':
-	main(sys.argv)
+    main(sys.argv)

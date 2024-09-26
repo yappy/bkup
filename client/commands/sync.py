@@ -8,9 +8,11 @@ import platform
 
 log = logging.getLogger(__name__)
 
+
 def robocopy(src_list: list[pathlib.Path], dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
     for src in src_list:
         robocopy_one(src, dst, exclude_file, exclude_dir, dry_run, force)
+
 
 # dir sync for windows
 def robocopy_one(src: pathlib.Path, dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
@@ -61,6 +63,7 @@ def robocopy_one(src: pathlib.Path, dst: pathlib.Path, exclude_file: list[str], 
     if proc.returncode >= 8:
         raise RuntimeError(f"Robocopy returned: {proc.returncode}")
 
+
 def rsync(src_list: list[pathlib.Path], dst: pathlib.Path, exclude: list[str], dry_run: bool, force: bool):
     # command and -param
     cmd = [
@@ -95,6 +98,7 @@ def rsync(src_list: list[pathlib.Path], dst: pathlib.Path, exclude: list[str], d
     log.info(f"EXEC: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
+
 def sync(args: argparse.Namespace):
     # ensure SRC is dir and mkdir DST
     def expand_and_check(src):
@@ -102,7 +106,7 @@ def sync(args: argparse.Namespace):
         if not p.is_dir():
             raise RuntimeError("SRC must be a directory")
         return p
-    src_list = list(map(expand_and_check , args.src))
+    src_list = list(map(expand_and_check, args.src))
     dst = pathlib.Path(args.dst).expanduser().resolve()
     log.info(f"mkdir: {dst}")
     dst.mkdir(parents=True, exist_ok=True)
@@ -123,16 +127,18 @@ def sync(args: argparse.Namespace):
             raise RuntimeError("--exclude-file and --exclude-dir are unavailable for rsync")
         rsync(src_list, dst, args.exclude, args.dry_run, args.force)
 
-    log.info(f"OK")
+    log.info("OK")
+
 
 def main(argv: list[str]):
     parser = argparse.ArgumentParser(
-        prog = argv[0],
+        prog=argv[0],
         description="Make a copy of file tree (Linux: rsync, Windows: robocopy)",
         epilog="Make sure of what will happen because sync operation may destruct the dest dir.",
     )
     parser.add_argument("--src", "-s", required=True, default=[], action="append",
-                        help="backup source dir (multiple OK) (rsync: dir/ means all entries in the dir will be copied. dir means dir directory will be copied)")
+                        help="backup source dir (multiple OK)"
+                        " (rsync: dir/ means all entries in the dir will be copied. dir means dir directory will be copied)")
     parser.add_argument("--dst", "-d", required=True, help="backup destination dir")
     parser.add_argument("--exclude", "-x", action="append", default=[], help="exclude pattern (rsync)")
     parser.add_argument("--exclude-file", "-xf", action="append", default=[], help="exclude file (Robocopy)")
@@ -142,7 +148,7 @@ def main(argv: list[str]):
 
     try:
         args = parser.parse_args(argv[1:])
-    except:
+    except BaseException:
         parser.print_help()
         raise
 
