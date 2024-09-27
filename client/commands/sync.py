@@ -64,12 +64,12 @@ def robocopy_one(src: pathlib.Path, dst: pathlib.Path, exclude_file: list[str], 
         raise RuntimeError(f"Robocopy returned: {proc.returncode}")
 
 
-def rsync(src_list: list[pathlib.Path], dst: pathlib.Path, exclude: list[str], dry_run: bool, force: bool):
+def rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], dry_run: bool, force: bool):
     # command and -param
     cmd = [
         "rsync",
-        # archive mode (=-rlptgoD), verbose
-        "-av",
+        # archive mode (=-rlptgoD)
+        "-a",
         # sync (delete if src does not contain)
         "--delete",
     ]
@@ -77,7 +77,7 @@ def rsync(src_list: list[pathlib.Path], dst: pathlib.Path, exclude: list[str], d
         cmd.append("-n")
     # SRC and DST are checked by 'required' option in parse.
     # But check again because rsync dst will be destroyed ant it is dangerous.
-    assert type(src_list) is list and all((isinstance(src, os.PathLike) for src in src_list))
+    assert type(src_list) is list and all((isinstance(src, str) for src in src_list))
     assert isinstance(dst, os.PathLike)
     # SRC...
     cmd.extend(map(str, src_list))
@@ -101,11 +101,15 @@ def rsync(src_list: list[pathlib.Path], dst: pathlib.Path, exclude: list[str], d
 
 def sync(args: argparse.Namespace):
     # ensure SRC is dir and mkdir DST
-    def expand_and_check(src):
+    def expand_and_check(src: str):
+        slash = src.endswith("/")
         p = pathlib.Path(src).expanduser().resolve()
         if not p.is_dir():
             raise RuntimeError("SRC must be a directory")
-        return p
+        if slash:
+            return str(p) + "/"
+        else:
+            return str(p)
     src_list = list(map(expand_and_check, args.src))
     dst = pathlib.Path(args.dst).expanduser().resolve()
     log.info(f"mkdir: {dst}")
