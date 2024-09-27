@@ -60,3 +60,9 @@ Requirements:
   * You can install by e.g. `winget install Python.Python.3.12`.
   * You can see list by `winget search python`.
   * **Not** msstore version, but winget version.
+
+### Test
+
+```sh
+python3 -m testutil discover client
+```

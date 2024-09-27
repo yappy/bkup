@@ -32,4 +32,4 @@ jobs:
         flake8 . --count --statistics
     - name: Test
       run: |
-        python -m unittest discover client
+        python -m unittest discover -v client
