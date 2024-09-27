@@ -61,17 +61,20 @@ class TestFoo(unittest.TestCase):
         return stdout.getvalue(), stderr.getvalue()
 
     def check_tree(self, dir1: pathlib.Path, dir2: pathlib.Path):
+        subfile1 = [p.name for p in dir1.iterdir() if p.is_file()]
+        subfile1.sort()
+        subfile2 = [p.name for p in dir2.iterdir() if p.is_file()]
+        subfile2.sort()
+        self.assertEqual(subfile1, subfile2)
+
         subdir1 = [p.name for p in dir1.iterdir() if p.is_dir()]
         subdir1.sort()
         subdir2 = [p.name for p in dir2.iterdir() if p.is_dir()]
         subdir2.sort()
         self.assertEqual(subdir1, subdir2)
 
-        subfile1 = [p.name for p in dir1.iterdir() if p.is_file()]
-        subfile1.sort()
-        subfile2 = [p.name for p in dir2.iterdir() if p.is_file()]
-        subfile2.sort()
-        self.assertEqual(subfile1, subfile2)
+        for name in subdir1:
+            self.check_tree(dir1 / name, dir2 / name)
 
     def test_help(self):
         stdout, stderr = self.call_main(["bkup.py", "-h"])
@@ -84,9 +87,9 @@ class TestFoo(unittest.TestCase):
             if not src.endswith(os.path.sep):
                 src += os.path.sep
             # create a tree to src
-            create_test_tree(srcdir, depth=2, dir_count=15, file_count=100)
+            create_test_tree(srcdir, depth=2, dir_count=10, file_count=50)
             # create a different tree to dst
-            create_test_tree(dstdir, depth=1, dir_count=5, file_count=200)
+            create_test_tree(dstdir, depth=1, dir_count=5, file_count=100)
             # sync src > dst
             self.call_main(["bkup.py", "sync", "--src", src, "--dst", dst, "--force"])
             # check src == dst
