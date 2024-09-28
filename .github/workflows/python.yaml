@@ -30,6 +30,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8
 
+    - name: Install (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt install pbzip2
+
     - name: Install (Windows)
       if: runner.os == 'Windows'
       run: |
