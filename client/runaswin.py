@@ -36,9 +36,13 @@ def main(argv: list[str]):
         usage(argv[0])
         sys.exit(1)
 
+    # convert path if the first argument is not -flags
+    if argv[1].startswith("-"):
+        argv1 = argv[1]
+    else:
+        argv1 = str(wslpath_to_win(argv[1]))
     # "*.exe" in WSL makes Windows program run
-    pyfile = wslpath_to_win(argv[1])
-    cmd = ["py.exe", "-3", str(pyfile)] + argv[2:]
+    cmd = ["py.exe", "-3", argv1] + argv[2:]
 
     print("Execute Windows python...")
     print(f"Run: {' '.join(cmd)}")

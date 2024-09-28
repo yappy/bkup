@@ -65,4 +65,7 @@ Requirements:
 
 ```sh
 python3 -m testutil discover client
+
+# Launch windows test from WSL
+python3 ./client/runaswin.py -m unittest discover client
 ```

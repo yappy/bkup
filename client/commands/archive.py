@@ -27,8 +27,8 @@ def exec(cmd: list[str], dry_run: bool):
 def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
     try:
         # -C: change to directory DIR
-        # -c: Create new.
-        # -f: Specify file name.
+        # -c: create new.
+        # -f: specify file name.
         cmd = ["tar", "-C", str(src), "-cf", str(ar_dst)] + TAR_OPTS + ["."]
         exec(cmd, dry_run)
     except subprocess.CalledProcessError as e:
