@@ -1,5 +1,7 @@
 # bkup
 
+[![Client Script Test](https://github.com/yappy/bkup/actions/workflows/python.yaml/badge.svg)](https://github.com/yappy/bkup/actions/workflows/python.yaml)
+
 Backup manager and tools
 
 ## client
