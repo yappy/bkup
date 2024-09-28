@@ -140,13 +140,13 @@ def main(argv: list[str]):
         description="Make a copy of file tree (Linux: rsync, Windows: robocopy)",
         epilog="Make sure of what will happen because sync operation may destruct the dest dir.",
     )
-    parser.add_argument("--src", "-s", required=True, default=[], action="append",
-                        help="backup source dir (multiple OK)"
+    parser.add_argument("--src", "-s", nargs="+",
+                        help="backup source dir"
                         " (rsync: dir/ means all entries in the dir will be copied. dir means dir directory will be copied)")
     parser.add_argument("--dst", "-d", required=True, help="backup destination dir")
-    parser.add_argument("--exclude", "-x", action="append", default=[], help="exclude pattern (rsync)")
-    parser.add_argument("--exclude-file", "-xf", action="append", default=[], help="exclude file (Robocopy)")
-    parser.add_argument("--exclude-dir", "-xd", action="append", default=[], help="exclude dir (Robocopy)")
+    parser.add_argument("--exclude", "-x",  help="exclude pattern (rsync)")
+    parser.add_argument("--exclude-file", "-xf", nargs="*", help="exclude file (Robocopy)")
+    parser.add_argument("--exclude-dir", "-xd", nargs="*", help="exclude dir (Robocopy)")
     parser.add_argument("--dry_run", "-n", action="store_true", help="dry run")
     parser.add_argument("--force", "-f", action="store_true", help="run without confirmation")
 
