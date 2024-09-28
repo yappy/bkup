@@ -35,11 +35,6 @@ jobs:
       run: |
         sudo apt install pbzip2
 
-    - name: Install (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        winget install 7zip.7zip --disable-interactivity --accept-source-agreements
-
     - name: Lint with flake8
       run: |
         flake8 . --count --statistics
