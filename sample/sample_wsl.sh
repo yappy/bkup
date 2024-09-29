@@ -5,15 +5,12 @@
 # > wsl.exe --cd ~ --exec <./path/to/this.sh>
 
 # !!! REPLACE HERE !!!
-SRC_DIRS=C:\\Users
-DST_DIR=D:\\win
+SRC_DIR=~
+DST_DIR=/mnt/d/wsl
 # !!! REPLACE HERE !!!
 
-# Windows
-BACKUP_DIR=${DST_DIR}\\backup
-ARCHIVE_DIR=${DST_DIR}\\archive
-# WSL
-LOG_DIR=$(wslpath ${DST_DIR})
+ARCHIVE_DIR=${DST_DIR}
+LOG_DIR=${DST_DIR}
 LOG_FILE=${LOG_DIR}/backup.log
 SELF_DIR=$(realpath $(dirname $0))
 SCRIPT_DIR=${SELF_DIR}/../client
@@ -23,17 +20,9 @@ echo START >> ${LOG_FILE}
 date -R >> ${LOG_FILE}
 echo -------------------------------------------------------------------------------- >> ${LOG_FILE}
 
-# Robocopy may be failed due to access restriction or locked files
-python3 ${SCRIPT_DIR}/runaswin.py ${SCRIPT_DIR}/bkup.py \
-sync \
---src ${SRC_DIRS} \
---dst ${BACKUP_DIR} \
---force \
->> ${LOG_FILE} 2>&1
-
-python3 ${SCRIPT_DIR}/runaswin.py ${SCRIPT_DIR}/bkup.py \
+python3 ${SCRIPT_DIR}/bkup.py \
 archive \
---src ${BACKUP_DIR} \
+--src ${SRC_DIR} \
 --dst ${ARCHIVE_DIR} \
 >> ${LOG_FILE} 2>&1
 

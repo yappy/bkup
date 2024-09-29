@@ -8,6 +8,32 @@ Backup manager and tools
 
 [Tech Note](note/client.md)
 
+### Requirements
+
+* Linux
+  * python3
+    * 多分最初からある。
+  * rsync
+    * `sudo apt install rsync`
+  * pbzip2
+    * `sudo apt install pbzip2`
+    * マルチスレッド版 .bz2 圧縮。さすがにマルチコアだと速さが違う。
+* Windows
+  * winget
+    * <https://learn.microsoft.com/ja-jp/windows/package-manager/winget/>
+    * 無くてもいいけどあると楽。
+    * 無いなら以下は公式サイトからダウンロードしてインストール。
+  * python 3.x
+    * `winget search python` で探して `winget install Python.Python.3.12`
+      のように入れる。
+    * msstore ではなく winget の方。
+    * 3.10 くらい以降推奨。
+    * 自動テストの結果参照。
+    * <https://github.com/yappy/bkup/actions>
+  * 7-Zip
+    * `winget install 7zip.7zip`
+    * やはり圧縮率と速さがいい。
+
 ### bkup.py
 
 クライアントツール群のフロントエンド。
@@ -26,6 +52,7 @@ Requirements:
 * Unix
   * `rsync`
     * e.g. `sudo apt install rsync`
+* Windows
   * `Robocopy`
     * 最初から入っているはず
 
