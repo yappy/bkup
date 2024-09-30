@@ -6,7 +6,7 @@
 
 # !!! REPLACE HERE !!!
 SRC_DIRS=C:\\Users
-DST_DIR=D:\\win
+DST_DIR=D:\\backup\\win
 # !!! REPLACE HERE !!!
 
 # Windows
@@ -18,10 +18,11 @@ LOG_FILE=${LOG_DIR}/backup.log
 SELF_DIR=$(realpath $(dirname $0))
 SCRIPT_DIR=${SELF_DIR}/../client
 
-echo -------------------------------------------------------------------------------- >> ${LOG_FILE}
-echo START >> ${LOG_FILE}
-date -R >> ${LOG_FILE}
-echo -------------------------------------------------------------------------------- >> ${LOG_FILE}
+mkdir -p ${LOG_DIR}
+echo -------------------------------------------------------------------------------- | tee -a ${LOG_FILE}
+echo START  | tee -a ${LOG_FILE}
+date -R     | tee -a ${LOG_FILE}
+echo -------------------------------------------------------------------------------- | tee -a ${LOG_FILE}
 
 # Robocopy may be failed due to access restriction or locked files
 python3 ${SCRIPT_DIR}/runaswin.py ${SCRIPT_DIR}/bkup.py \
@@ -29,15 +30,17 @@ sync \
 --src ${SRC_DIRS} \
 --dst ${BACKUP_DIR} \
 --force \
->> ${LOG_FILE} 2>&1
+2>&1 \
+| tee -a ${LOG_FILE}
 
 python3 ${SCRIPT_DIR}/runaswin.py ${SCRIPT_DIR}/bkup.py \
 archive \
 --src ${BACKUP_DIR} \
 --dst ${ARCHIVE_DIR} \
->> ${LOG_FILE} 2>&1
+2>&1 \
+| tee -a ${LOG_FILE}
 
-echo -------------------------------------------------------------------------------- >> ${LOG_FILE}
-echo END >> ${LOG_FILE}
-date -R >> ${LOG_FILE}
-echo -------------------------------------------------------------------------------- >> ${LOG_FILE}
+echo -------------------------------------------------------------------------------- | tee -a ${LOG_FILE}
+echo END | tee -a ${LOG_FILE}
+date -R  | tee -a ${LOG_FILE}
+echo -------------------------------------------------------------------------------- | tee -a ${LOG_FILE}
