@@ -1,0 +1,215 @@
+schtasks.exe /Create /?
+
+SCHTASKS /Create [/S システム [/U ユーザー名 [/P [パスワード]]]]
+    [/RU ユーザー名 [/RP パスワード]] /SC スケジュール [/MO 修飾子] [/D 日]
+    [/M 月] [/I アイドル時間] /TN タスク名 /TR 実行タスク [/ST 開始時刻]
+    [/RI 間隔] [ {/ET 終了時刻 | /DU 継続時間} [/K] [/XML xml ファイル] [/V1]]
+    [/SD 開始日] [/ED 終了日] [/IT | /NP] [/Z] [/F] [/HRESULT] [/?]
+
+説明:
+    管理者がローカルまたはリモートのシステム上にスケジュール タスク
+     を作成します。
+
+パラメーター一覧:
+    /S   システム      接続先のリモート システムを指定します。システム
+                       パラメーターを省略すると、既定値によりローカル システム
+                       になります。
+
+    /U   ユーザー名    SchTasks.exe が実行されるユーザー コンテキストを
+                       指定します。
+
+    /P   [パスワード]  与えられたユーザーのコンテキストのパスワードを指定し
+                       ます。省略すると入力が促されます。
+
+    /RU  ユーザー名    タスクの実行に使う実行ユーザー アカウント
+                       (ユーザー コンテキスト) を指定します。システム
+                       アカウントの有効な値は ""、"NT AUTHORITY\SYSTEM"、
+                       または "SYSTEM" です。
+                       v2 タスクには、"NT AUTHORITY\LOCALSERVICE" と
+                       "NT AUTHORITY\NETWORKSERVICE" も 3 つすべての
+                       3 つすべてに対して既知の SID と同じく利用できます。
+
+    /RP  [パスワード]  実行ユーザーのパスワードを指定します。
+                       パスワードを要求するには、値は "*" または
+                       空である必要があります。システム アカウントではこの
+                       パスワードは無視されます。/RU または /XML スイッチの
+                       いずれかと組み合わせる必要があります。
+
+    /SC   スケジュール スケジュールの頻度を指定します。
+                       有効なスケジュールの種類は MINUTE、HOURLY、DAILY、
+                       WEEKLY、MONTHLY、ONCE、ONSTART、ONLOGON、ONIDLE、
+                       ONEVENT です。
+
+    /MO  修飾子        スケジュールの種類を詳細に指定して、スケジュールの頻度
+                       に関してより細かな制御を行います。有効な値は、下の
+                       "修飾子" の節に記述されています。
+
+    /D    日           タスクを実行する曜日を指定します。 有効な
+                       値は、MON、TUE、WED、THU、FRI、SAT および SUN です。
+                       毎月の指定 (MONTHLY) の場合は、日を 1 から 31 の
+                       間で指定します。ワイルドカード "*" を使うとすべての日を
+                       指定できます。
+
+    /M   月            月を指定します。既定の日は月の最初の日になります。
+                       有効な値は、JAN、FEB、MAR、APR、MAY、JUN、JUL、
+                       AUG、SEP、OCT、NOV および DEC です。ワイルド カード
+                       "*" を使うとすべての月が指定できます。
+
+    /I  アイドル時間   待機するアイドル時間を指定します。このアイドル時間の
+                       待機後にスケジュールされた ONIDLE のタスクが実行され
+                       ます。
+                       有効な範囲は、1 から 999 分です。
+
+    /TN   タスク名     このスケジュール タスクを\一意に識別するための
+                       文字列をパス名の形式で指定します。
+
+    /TR   実行タスク   スケジュールされた時刻に実行するプログラムのパスおよび
+                       ファイル名を指定します。
+                       例: C:\windows\system32\calc.exe
+
+    /ST   開始時刻     タスクを実行する開始時刻を指定します。時刻は
+                       HH:mm の形式 (24 時間形式) です。たとえば、
+                       午後 2 時 30 分の場合は14:30 と指定します。/ST
+                       が指定されていない場合の既定値は現在の時刻です。
+                       このオプションは /SC ONCE と併用する必要があります。
+
+    /RI   間隔         繰り返す間隔を分で指定します。これは
+                       次のスケジュールの種類には適用できません: MINUTE、
+                       HOURLY、ONSTART、ONLOGON、ONIDLE、ONEVENT。
+                       有効な範囲: 1 - 599940 分。
+
+                       /ET または /DU が指定されている場合、既定値は
+                       10 分になります。
+
+    /ET   終了時刻     タスクの実行を終了する時刻を指定します。時刻の形式は
+                       HH:mm (24 時間形式) です。たとえば、午後 2 時 50 分
+                       の場合は 14:50 と指定します。次のスケジュールの種類には
+                       適用できません: ONSTART、ONLOGON、ONIDLE、ONEVENT。
+
+    /DU   継続時間     タスクを実行する継続時間を指定します。時間は
+                       HH:mm の形式です。これは /ET と共には適用され
+                       ません。また、次のスケジュールの種類には適用されません:
+                       ONSTART、ONLOGON、ONIDLE、ONEVENT。
+                       /V1 タスクの場合、/RIが指定されると、既定値は
+                       1 時間になります。
+
+    /K                 終了時刻または継続時間にタスクを終了します。
+                       これは次のスケジュールの種類には適用されません: ONSTART、
+                       ONLOGON、ONIDLE、ONEVENT。/ET または /DU を
+                       指定する必要があります。
+
+    /SD   開始日       タスクを実行する最初の日を指定します。 形式は
+                       yyyy/mm/dd です。既定値は現在の日付です。
+                       これは次のスケジュールの種類には適用されません: ONCE、
+                       ONSTART、ONLOGON、ONIDLE、ONEVENT。
+
+    /ED   終了日       タスクを実行する最後の日を指定してください。形式は
+                       yyyy/mm/dd です。これは次のスケジュールの種類には適用
+                       されません: ONCE、ONSTART、ONLOGON、ONIDLE、ONEVENT。
+
+    /EC   チャネル名   OnEvent トリガーに対するイベントのチャネルを指定します。
+
+    /IT                ジョブの実行時に /RU ユーザーが現在ログオンしている
+                       場合にのみ、タスクが対話的に実行されるようにします。
+                       このタスクは、ユーザーがログインしている場合にのみ実行
+                       します。
+
+    /NP                パスワードは保存されません。タスクは特定のユーザー
+                       として非対話的に実行されます。
+                       ローカル リソースしか使用できません。
+
+    /Z                 最後の実行後で削除するタスクをマークします。
+
+    /XML  XMLファイル  ファイル内で指定されているタスク XML からタスクを作成し
+                       ます。
+                       タスク XML に既にプリンシパルが含まれている場合は、
+                       /RU および /RP スイッチ、または /RP 単体と組み合わ
+                       せることができます。
+
+    /V1                Vista 以前のプラットフォームで表示するタスクを作成
+                       します。/XML との互換性はありません。
+
+    /F                 指定したタスクが既に存在する場合、タスクを強制的に作
+                       成し、警告を抑制します。
+
+    /RL   レベル       ジョブの実行レベルを設定します。有効な値は
+                       LIMITED と HIGHEST です。既定値は LIMITED です。
+
+    /DELAY 遅延時間    トリガーの開始後から、タスクが実行するまでの待機
+                       時間を指定します。時間の形式は mmmm:ss です。
+                       このオプションは ONSTART、ONLOGON、ONEVENT の
+                       種類のスケジュールにのみ有効です。
+
+    /HRESULT           診断能力を向上させるために、プロセス終了コードは
+                       HRESULT 形式になります。
+
+    /?                 このヘルプを表示します。
+
+修飾子: /MO スイッチでスケジュールの各種類に利用できる値:
+    MINUTE:  1 から 1439 (分)
+    HOURLY:  1 から 23 (時)
+    DAILY:   1 から 365 (日)
+    WEEKLY:  1 から 52 (週)
+    ONCE:    修飾子なし
+    ONSTART: 修飾子なし
+    ONLOGON: 修飾子なし
+    ONIDLE:  修飾子なし
+    MONTHLY: 1 から 12 (月) または
+             FIRST、SECOND、THIRD、FOURTH、LAST、LASTDAY
+
+    ONEVENT:  XPath イベントのクエリ文字列。
+例:
+    ==> ユーザー "runasuser" の下で 1 時間ごとに notepad.exe を実行する
+        スケジュール タスク "doc" をリモート コンピューター "ABC" に作成します。
+
+        SCHTASKS /Create /S ABC /U user /P password /RU runasuser
+                 /RP runaspassword /SC HOURLY /TN doc /TR notepad
+
+    ==> リモート コンピューター "ABC" にスケジュール タスク "accountant"
+        を作成し、開始日と終了日の間、指定された開始時刻から終了時刻の
+        間で 5 分ごとに calc.exe を実行します。
+
+        SCHTASKS /Create /S ABC /U domain\user /P password /SC MINUTE
+                 /MO 5 /TN accountant /TR calc.exe /ST 12:00 /ET 14:00
+                 /SD 06/06/2006 /ED 06/06/2006 /RU 実行ユーザー
+                 /RP ユーザーパスワード
+
+    ==> スケジュール タスク "gametime" を作成し、毎月第一日曜日
+        にフリーセルを実行します。
+
+        SCHTASKS /Create /SC MONTHLY /MO first /D SUN /TN gametime
+                 /TR c:\windows\system32\freecell
+
+    ==> リモート コンピューター "ABC" にスケジュール タスク "report"
+        を作成し、毎週 notepad.exe を実行します。
+
+        SCHTASKS /Create /S ABC /U user /P password /RU runasuser
+                 /RP runaspassword /SC WEEKLY /TN report /TR notepad.exe
+
+    ==> リモート コンピューター "ABC" スケジュール タスク
+        "logtracker" を作成し、指定の開始時刻から 5 分ごとに
+        notepad.exe を実行します。/RP パスワードの入力を促され
+        ます。
+
+        SCHTASKS /Create /S ABC /U domain\user /P password /SC MINUTE
+                 /MO 5 /TN logtracker
+                 /TR c:\windows\system32\notepad.exe /ST 18:30
+                 /RU runasuser /RP
+
+    ==> スケジュール タスク "gaming" を作成して freecell.exe を毎日
+        12:00 に開始し、自動的に 14:00 に終了するようにします。
+
+        SCHTASKS /Create /SC DAILY /TN ゲーム /TR c:\freecell /ST 12:00
+                 /ET 14:00 /K
+    ==> スケジュール タスク "EventLog" を作成し、システム チャネルで
+        イベント 101 が発行された場合は常に wevtvwr.msc wo を実行します。
+
+        SCHTASKS /Create /TN EventLog /TR wevtvwr.msc /SC ONEVENT
+                 /EC System /MO *[System/EventID=101]
+    ==> ファイル パスにスペースを含める場合は、CMD.EXE に対する引用符 1 組と、
+        合計 2 セット使用します。CDM の外側の引用符には二重引用符を使用する
+        必要があります。内側の引用符には一重引用符、またはエスケープした
+        二重引用符を使用できます:
+        SCHTASKS /Create
+           /tr "'c:\program files\internet explorer\iexplorer.exe'
+           \"c:\log data\today.xml\"" ...

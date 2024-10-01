@@ -139,6 +139,29 @@ python -m zipfile --help
 
 ### 自動起動
 
+#### WSL - cron
+
+使えないことはないけど、WSL2 だと VM が起動している間でないと動かない。。
+ちょっと微妙化も。
+
+#### タスクスケジューラ
+
+Windows の cron みたいなもの。
+多分これを使うのがいい。
+`wsl.exe` を実行すれば即 Linux の世界に入れる。
+
+コマンドラインからは `schtasks.exe` で操作可能 (もちろん WSL からも)。
+ただし Windows の管理者権限が必要な操作は管理者権限つきのコンソールから行った方が
+よいかも。
+
+```sh
+schtasks.exe /?
+schtasks.exe /Create /?
+```
+
+GUI はスタートメニューから「タスクスケジューラ」と入れて検索、
+または Win + R (ファイル名を指定して実行) から `taskschd.msc`。
+
 #### Windows から WSL を呼ぶ
 
 Windows から WSL 内のコマンド呼び出しは `wsl.exe` で簡単にできる。
@@ -161,15 +184,6 @@ Windows から WSL 内のコマンド呼び出しは `wsl.exe` で簡単にで�
 
 > wsl.exe --cd ~ ls
 ```
-
-#### タスクスケジューラ
-
-Windows の cron みたいなもの。
-多分これを使うのがいい。
-
-#### WSL - cron
-
-使えないことはないけど、WSL2 だと VM が起動している間でないと動かない。。
 
 ### サーバへの転送
 
