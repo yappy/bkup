@@ -147,7 +147,7 @@ def main(argv: list[str]):
     parser.add_argument("--exclude", "-x",  help="exclude pattern (rsync)")
     parser.add_argument("--exclude-file", "-xf", nargs="*", help="exclude file (Robocopy)")
     parser.add_argument("--exclude-dir", "-xd", nargs="*", help="exclude dir (Robocopy)")
-    parser.add_argument("--dry_run", "-n", action="store_true", help="dry run")
+    parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
     parser.add_argument("--force", "-f", action="store_true", help="run without confirmation")
 
     try:

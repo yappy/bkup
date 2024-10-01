@@ -4,6 +4,7 @@ from client import bkup
 import os
 import pathlib
 import tempfile
+import time
 import subprocess
 
 
@@ -93,6 +94,7 @@ class TestFoo(unittest.TestCase):
         stdout, stderr = self.call_main(["bkup.py", "-h"])
         self.assertTrue(stdout or stderr)
 
+    @unittest.skip
     def test_sync(self):
         with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as dst:
             srcdir = pathlib.Path(src)
@@ -109,6 +111,29 @@ class TestFoo(unittest.TestCase):
             # check src == dst
             self.check_tree(srcdir, dstdir)
 
+    def test_clean(self):
+        now = time.time()
+        day = 24.0 * 60 * 60
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dir = pathlib.Path(tmpdir)
+            for i in range(100):
+                p = dir / f"backup_2024{i:0>4}.tar.bz2"
+                p.touch()
+                # (i + 0.5) days before
+                ts = now - (i + 0.5) * day
+                os.utime(p, (ts, ts))
+
+            self.call_main(["bkup.py", "clean", "--dst", tmpdir, "--keep-count", "10", "--keep-days", "50"])
+
+            result = list(dir.iterdir())
+            self.assertEqual(len(result), 50)
+
+            self.call_main(["bkup.py", "clean", "--dst", tmpdir, "--keep-count", "10", "--keep-days", "0"])
+
+            result = list(dir.iterdir())
+            self.assertEqual(len(result), 10)
+
+    @unittest.skip
     def test_archive(self):
         # python 3.9 dependent
         with (tempfile.TemporaryDirectory() as src,

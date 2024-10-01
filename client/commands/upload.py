@@ -14,7 +14,7 @@ def main(argv: list[str]):
         description="Archive and compress a directory (Linux: tar.bz2, Windows: 7z)",
     )
     parser.add_argument("--src", "-s", required=True, help="backup source dir")
-    parser.add_argument("--dry_run", "-n", action="store_true", help="dry run")
+    parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
 
     args = parser.parse_args(argv[1:])
 
