@@ -94,7 +94,6 @@ class TestFoo(unittest.TestCase):
         stdout, stderr = self.call_main(["bkup.py", "-h"])
         self.assertTrue(stdout or stderr)
 
-    @unittest.skip
     def test_sync(self):
         with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as dst:
             srcdir = pathlib.Path(src)
@@ -133,7 +132,6 @@ class TestFoo(unittest.TestCase):
             result = list(dir.iterdir())
             self.assertEqual(len(result), 10)
 
-    @unittest.skip
     def test_archive(self):
         # python 3.9 dependent
         with (tempfile.TemporaryDirectory() as src,
