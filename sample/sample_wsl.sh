@@ -7,6 +7,8 @@
 # !!! REPLACE HERE !!!
 SRC_DIR=~
 DST_DIR=/mnt/d/backup/wsl
+KEEP_COUNT=12
+KEEP_DAYS=365
 # !!! REPLACE HERE !!!
 
 ARCHIVE_DIR=${DST_DIR}
@@ -20,6 +22,14 @@ echo ---------------------------------------------------------------------------
 echo START | tee -a ${LOG_FILE}
 date -R    | tee -a ${LOG_FILE}
 echo -------------------------------------------------------------------------------- | tee -a ${LOG_FILE}
+
+python3 ${SCRIPT_DIR}/bkup.py \
+clean \
+--dst ${ARCHIVE_DIR} \
+--keep-count ${KEEP_COUNT} \
+--keep-days ${KEEP_DAYS} \
+2>&1 \
+| tee -a ${LOG_FILE}
 
 python3 ${SCRIPT_DIR}/bkup.py \
 archive \

@@ -6,8 +6,8 @@ import re
 
 log = logging.getLogger(__name__)
 
-DEFAULT_KEEP_COUNT = 5
-DEFAULT_KEEP_DAYS = 90
+DEFAULT_KEEP_COUNT = 12
+DEFAULT_KEEP_DAYS = 365
 # [not-num*]YYYYMMDD[num*]
 PAT = re.compile(r"^.*\D(\d{8,})$")
 EXTS = {
