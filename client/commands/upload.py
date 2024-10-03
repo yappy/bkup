@@ -1,6 +1,7 @@
 import logging
 import argparse
 import pathlib
+import subprocess
 
 log = logging.getLogger(__name__)
 
@@ -21,6 +22,20 @@ def upload(args: argparse.Namespace):
         # archive mode (=-rlptgoD), compress, skip if dst is newer
         "-azu",
     ]
+    if args.ssh:
+        cmd += [
+            "-e",
+            args.ssh,
+        ]
+    cmd += [
+        # SRC
+        str(latest_file),
+        # DST
+        args.dst,
+    ]
+
+    log.info(" ".join(cmd))
+    subprocess.run(cmd, check=True)
 
 
 def main(argv: list[str]):
@@ -29,7 +44,8 @@ def main(argv: list[str]):
         description="Archive and compress a directory (Linux: tar.bz2, Windows: 7z)",
     )
     parser.add_argument("--src", "-s", required=True, help="archive dir")
-    parser.add_argument("--dst", "-s", required=True, help="rsync destination (user@host:dir)")
+    parser.add_argument("--dst", "-d", required=True, help="rsync destination (user@host:dir)")
+    parser.add_argument("--ssh", help='ssh command line (e.g. --ssh "ssh -p 12345")')
     parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
 
     args = parser.parse_args(argv[1:])
