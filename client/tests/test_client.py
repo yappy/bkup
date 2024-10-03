@@ -149,11 +149,18 @@ class TestFoo(unittest.TestCase):
 
             self.call_main(["bkup.py", "archive", "--src", src, "--dst", dst])
 
-            # eusure dst dir has an archive file
-            after = [p.name for p in dstdir.iterdir()]
+            # eusure dst dir has an archive file and latest.txt
+            after = [p.name for p in dstdir.iterdir() if p.name != "latest.txt"]
             self.assertEqual(len(after), 1)
             archive_file = dstdir / after[0]
+            latest_file = dstdir / "latest.txt"
 
+            # check latest.txt
+            with latest_file.open("r") as fin:
+                line = fin.readline().strip()
+                line == after[0]
+
+            # extract and check the archive file
             self.extract_archive(archive_file, extdir)
 
             # if there is only one dir, change extdir to it
