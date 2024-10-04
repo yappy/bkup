@@ -9,13 +9,15 @@ import platform
 log = logging.getLogger(__name__)
 
 
-def robocopy(src_list: list[pathlib.Path], dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
+def robocopy(src_list: list[str], dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
     for src in src_list:
-        robocopy_one(src, dst, exclude_file, exclude_dir, dry_run, force)
+        srcpath = pathlib.PureWindowsPath(src)
+        dstdir = dst / srcpath.name
+        robocopy_one(src, dstdir, exclude_file, exclude_dir, dry_run, force)
 
 
 # dir sync for windows
-def robocopy_one(src: pathlib.Path, dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
+def robocopy_one(src: str, dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
     nproc = max(multiprocessing.cpu_count(), 128)
     cmd = [
         "Robocopy.exe", str(src), str(dst),
