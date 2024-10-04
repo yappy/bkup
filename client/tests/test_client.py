@@ -164,9 +164,13 @@ class TestFoo(unittest.TestCase):
             self.extract_archive(archive_file, extdir)
 
             # if there is only one dir, change extdir to it
-            subs = list(extdir.iterdir())
-            if len(subs) == 1:
-                extdir = subs[0]
+            while True:
+                subs = list(extdir.iterdir())
+                if len(subs) == 1:
+                    extdir = subs[0]
+                else:
+                    break
+
             self.check_tree(srcdir, extdir)
 
 
