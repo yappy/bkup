@@ -70,8 +70,8 @@ def rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], dry_run: b
     # command and -param
     cmd = [
         "rsync",
-        # archive mode (=-rlptgoD)
-        "-a",
+        # archive mode (=-rlptgoD), verbose
+        "-av",
         # sync (delete if src does not contain)
         "--delete",
     ]

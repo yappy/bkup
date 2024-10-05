@@ -97,16 +97,30 @@ class TestFoo(unittest.TestCase):
     def test_sync(self):
         with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as dst:
             srcdir = pathlib.Path(src)
+            src1 = srcdir / "src1"
+            src2 = srcdir / "src2"
             dstdir = pathlib.Path(dst)
-            # "src/"
-            if not src.endswith(os.path.sep):
-                src += os.path.sep
+            dst1 = dstdir / "src1"
+            dst2 = dstdir / "src2"
+
             # create a tree to src
-            self.create_test_tree(srcdir, depth=2, dir_count=10, file_count=50)
+            src1.mkdir()
+            src2.mkdir()
+            self.create_test_tree(src1, depth=2, dir_count=10, file_count=50)
+            self.create_test_tree(src2, depth=2, dir_count=15, file_count=20)
             # create a different tree to dst
-            self.create_test_tree(dstdir, depth=1, dir_count=5, file_count=100)
+            dst1.mkdir()
+            dst2.mkdir()
+            self.create_test_tree(dst1, depth=1, dir_count=5, file_count=100)
+            self.create_test_tree(dst2, depth=1, dir_count=10, file_count=60)
+
             # sync src > dst
-            self.call_main(["bkup.py", "sync", "--src", src, "--dst", dst, "--force"])
+            self.call_main([
+                "bkup.py", "sync",
+                "--src", str(src1), str(src2),
+                "--dst", str(dstdir),
+                "--force"])
+
             # check src == dst
             self.check_tree(srcdir, dstdir)
 

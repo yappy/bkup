@@ -2,15 +2,15 @@ import logging
 import argparse
 import pathlib
 import subprocess
-import os
 import platform
 import getpass
 import datetime
+from . import util
 
 log = logging.getLogger(__name__)
 
 CMD_UNIX = "tar"
-CMD_WIN = "%ProgramFiles%\\7-Zip\\7z.exe"
+CMD_WIN_FROM_PROGRAM_FILES = "\\7-Zip\\7z.exe"
 EXT_UNIX = "tar.bz2"
 EXT_WIN = "7z"
 TAR_OPTS = ["--use-compress-prog=pbzip2"]
@@ -29,7 +29,7 @@ def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
         # -C: change to directory DIR
         # -c: create new.
         # -f: specify file name.
-        cmd = ["tar", "-C", str(src), "-cf", str(ar_dst)] + TAR_OPTS + ["."]
+        cmd = [CMD_UNIX, "-C", str(src), "-cf", str(ar_dst)] + TAR_OPTS + ["."]
         exec(cmd, dry_run)
     except subprocess.CalledProcessError as e:
         if e.returncode == 1:
@@ -45,15 +45,19 @@ def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
         raise
 
 
-def archive_win_7z(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
-    prog = os.path.expandvars(CMD_WIN)
+def archive_win_7z(src: pathlib.PureWindowsPath, ar_dst: pathlib.PureWindowsPath, dry_run: bool):
+    prog = util.get_winenv("ProgramFiles") + CMD_WIN_FROM_PROGRAM_FILES
+    # if wsl, convert windows path of 7z.exe to wsl (/mnt) path
+    if util.is_wsl():
+        prog = str(util.to_wslpath(prog))
+
     try:
         cmd = [prog, "a", str(ar_dst), str(src)]
         exec(cmd, dry_run)
     except subprocess.CalledProcessError as e:
         if e.returncode == 1:
             # Warning (Non fatal error(s)).
-            log.warning("7z exit with warning(s)")
+            log.warning("7z exit with warning(s) (exitcode=1)")
         else:
             raise
     except BaseException:
@@ -65,11 +69,7 @@ def archive_win_7z(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
 
 
 def archive(args: argparse.Namespace):
-    # get user@host and datetime for archive file name
-    user = getpass.getuser()
-    host = platform.node()
-    dt_now = datetime.datetime.now()
-    dt_str = dt_now.strftime('%Y%m%d%H%M')
+    iswin = util.is_win()
 
     # ensure SRC is dir and mkdir DST
     src = pathlib.Path(args.src).expanduser().resolve()
@@ -82,10 +82,34 @@ def archive(args: argparse.Namespace):
     log.info(f"mkdir: {dst}")
     log.info(f"SRC: {src}")
 
-    if platform.system() == "Windows":
+    # if wsl and src can be converted to windows path, execute windows binary
+    exe_from_wsl = False
+    if util.is_wsl():
+        winsrc = util.to_winpath(src)
+        windst = util.to_winpath(dst)
+        if winsrc is not None:
+            log.info("Windows SRC detected")
+            log.info("Windows binary mode")
+            exe_from_wsl = True
+
+    # get user@host and datetime for archive file name
+    if exe_from_wsl:
+        user = util.get_winuser()
+    else:
+        user = getpass.getuser()
+    # the same host name on windows and wsl
+    host = platform.node()
+    dt_now = datetime.datetime.now()
+    dt_str = dt_now.strftime('%Y%m%d%H%M')
+
+    if iswin:
         ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
         log.info(f"DST: {ar_dst}")
         archive_win_7z(src, ar_dst, args.dry_run)
+    elif exe_from_wsl:
+        ar_dst = windst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
+        log.info(f"DST: {ar_dst}")
+        archive_win_7z(winsrc, ar_dst, args.dry_run)
     else:
         ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_UNIX}"
         log.info(f"DST: {ar_dst}")

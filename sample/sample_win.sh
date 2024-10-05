@@ -7,6 +7,7 @@
 # !!! REPLACE HERE !!!
 SRC_DIRS=C:\\Users
 DST_DIR=D:\\backup\\win
+REMOTE=shanghai:/mnt/bkupinbox
 # !!! REPLACE HERE !!!
 
 # Windows
@@ -33,12 +34,14 @@ sync \
 2>&1 \
 | tee -a ${LOG_FILE}
 
-python3 ${SCRIPT_DIR}/runaswin.py ${SCRIPT_DIR}/bkup.py \
+python3 ${SCRIPT_DIR}/bkup.py \
 archive \
 --src ${BACKUP_DIR} \
 --dst ${ARCHIVE_DIR} \
 2>&1 \
 | tee -a ${LOG_FILE}
+
+python3
 
 echo -------------------------------------------------------------------------------- | tee -a ${LOG_FILE}
 echo END | tee -a ${LOG_FILE}
