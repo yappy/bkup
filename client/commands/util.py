@@ -17,7 +17,7 @@ def is_wsl() -> bool:
         subprocess.run(
             ["wslpath"], check=False,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except subprocess.SubprocessError:
+    except FileNotFoundError:
         _is_wsl = False
         return _is_wsl
 
