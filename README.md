@@ -23,16 +23,17 @@ Backup manager and tools
     * <https://learn.microsoft.com/ja-jp/windows/package-manager/winget/>
     * 無くてもいいけどあると楽。
     * 無いなら以下は公式サイトからダウンロードしてインストール。
+  * 7-Zip
+    * `winget install 7zip.7zip`
+    * やはり圧縮率と速さがいい。
   * python 3.x
+    * WSL 上の Linux Python を使うなら不要。
     * `winget search python` で探して `winget install Python.Python.3.12`
       のように入れる。
     * msstore ではなく winget の方。
     * 3.10 くらい以降推奨。
     * 自動テストの結果参照。
     * <https://github.com/yappy/bkup/actions>
-  * 7-Zip
-    * `winget install 7zip.7zip`
-    * やはり圧縮率と速さがいい。
 
 ### bkup.py
 
@@ -55,6 +56,16 @@ Requirements:
 * Windows
   * `Robocopy`
     * 最初から入っているはず
+
+##### rsync の注意
+
+`--src` に渡されたパラメータ (複数指定可) はそのまま rsync に渡されます。
+対象がディレクトリの場合、最後に `/` がつくかつかないかで意味が変わります。
+
+* `path/to/dir`: そのディレクトリを転送する。
+* `path/to/dir/`: そのディレクトリの中身を転送する。
+
+特に複数の `--src` を指定する場合、前者をお勧めします。
 
 #### archive
 
@@ -82,19 +93,15 @@ Requirements:
 ### runaswin.py
 
 WSL 内から Windows python を呼び出すラッパです。
-
-Requirements:
-
-* `py.exe` is available.
-  * You can install by e.g. `winget install Python.Python.3.12`.
-  * You can see list by `winget search python`.
-  * **Not** msstore version, but winget version.
+WSL からの `.exe` 呼び出しで十分な場合は不要。
 
 ### Test
 
 ```sh
-python3 -m unittest discover client
+# python3 -m unittest discover client
+./test.sh
 
 # Launch windows test from WSL
-python3 ./client/runaswin.py -m unittest discover client
+# python3 ./client/runaswin.py -m unittest discover client
+./win_test_from_wsl.sh
 ```

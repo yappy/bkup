@@ -4,12 +4,16 @@ import pathlib
 import subprocess
 import multiprocessing
 import os
-import platform
+from . import util
 
 log = logging.getLogger(__name__)
 
 
-def robocopy(src_list: list[str], dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
+def sync_win_robocopy(
+        src_list: list[str], dst: pathlib.Path,
+        exclude_file: list[str], exclude_dir: list[str],
+        dry_run: bool, force: bool):
+    assert src_list
     for src in src_list:
         srcpath = pathlib.PureWindowsPath(src)
         dstdir = dst / srcpath.name
@@ -17,7 +21,9 @@ def robocopy(src_list: list[str], dst: pathlib.Path, exclude_file: list[str], ex
 
 
 # dir sync for windows
-def robocopy_one(src: str, dst: pathlib.Path, exclude_file: list[str], exclude_dir: list[str], dry_run: bool, force: bool):
+def robocopy_one(
+        src: str, dst: pathlib.Path, exclude_file: list[str],
+        exclude_dir: list[str], dry_run: bool, force: bool):
     nproc = max(multiprocessing.cpu_count(), 128)
     cmd = [
         "Robocopy.exe", str(src), str(dst),
@@ -66,7 +72,7 @@ def robocopy_one(src: str, dst: pathlib.Path, exclude_file: list[str], exclude_d
         raise RuntimeError(f"Robocopy returned: {proc.returncode}")
 
 
-def rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], dry_run: bool, force: bool):
+def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], dry_run: bool, force: bool):
     # command and -param
     cmd = [
         "rsync",
@@ -102,6 +108,8 @@ def rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], dry_run: b
 
 
 def sync(args: argparse.Namespace):
+    iswin = util.is_win()
+
     # ensure SRC is dir and mkdir DST
     def expand_and_check(src: str):
         slash = src.endswith("/")
@@ -112,6 +120,7 @@ def sync(args: argparse.Namespace):
             return str(p) + "/"
         else:
             return str(p)
+
     src_list = list(map(expand_and_check, args.src))
     dst = pathlib.Path(args.dst).expanduser().resolve()
     log.info(f"mkdir: {dst}")
@@ -124,14 +133,30 @@ def sync(args: argparse.Namespace):
     if any(map(lambda src: dst.is_relative_to(src), src_list)):
         raise RuntimeError(f"one of src_list is parent of {dst}")
 
-    if platform.system() == "Windows":
+    exe_from_wsl = False
+    if util.is_wsl():
+        winsrc_list = list(map(util.to_winpath, src_list))
+        windst = util.to_winpath(dst)
+        # if all of elements are not None, windows binary mode
+        if all(winsrc_list):
+            log.info("Windows SRC detected")
+            log.info("Windows binary mode")
+            exe_from_wsl = True
+            # iter<PureWindowsPath> to list[str]
+            winsrc_list = list(map(str, winsrc_list))
+
+    if iswin:
         if args.exclude:
             raise RuntimeError("--exclude is unavailable for Robocopy")
-        robocopy(src_list, dst, args.exclude_file, args.exclude_dir, args.dry_run, args.force)
+        sync_win_robocopy(src_list, dst, args.exclude_file, args.exclude_dir, args.dry_run, args.force)
+    elif exe_from_wsl:
+        if args.exclude:
+            raise RuntimeError("--exclude is unavailable for Robocopy")
+        sync_win_robocopy(winsrc_list, windst, args.exclude_file, args.exclude_dir, args.dry_run, args.force)
     else:
         if args.exclude_file or args.exclude_dir:
             raise RuntimeError("--exclude-file and --exclude-dir are unavailable for rsync")
-        rsync(src_list, dst, args.exclude, args.dry_run, args.force)
+        sync_unix_rsync(src_list, dst, args.exclude, args.dry_run, args.force)
 
     log.info("OK")
 
