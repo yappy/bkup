@@ -12,10 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install
-      run: |
-        sudo apt install shellcheck
-
     - name: Lint with shellcheck
       run: |
         shellcheck sample/*.sh
