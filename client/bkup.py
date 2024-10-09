@@ -7,7 +7,7 @@ import logging
 
 def log_init():
     logging.basicConfig(
-        format='%(asctime)s %(levelname)8s:%(name)16s: %(message)s',
+        format='%(asctime)s %(levelname)8s:%(name)-16s: %(message)s',
         # format='%(asctime)s %(levelname)8s:%(name)16s:%(lineno)4s: %(message)s',
         level=logging.INFO,
         datefmt='%Y-%m-%d %H:%M:%S',

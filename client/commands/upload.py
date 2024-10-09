@@ -37,6 +37,8 @@ def upload(args: argparse.Namespace):
     log.info(" ".join(cmd))
     subprocess.run(cmd, check=True)
 
+    log.info("OK")
+
 
 def main(argv: list[str]):
     parser = argparse.ArgumentParser(

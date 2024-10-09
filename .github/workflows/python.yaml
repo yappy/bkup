@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  lint-and-test:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]

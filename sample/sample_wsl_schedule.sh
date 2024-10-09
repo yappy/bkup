@@ -9,8 +9,10 @@ TASK_CMD="sample_wsl.sh"
 TASK_OPT="/SC MONTHLY /D 1 /ST 04:00"
 # !!! REPLACE HERE !!!
 
-SELF_DIR=$(realpath $(dirname $0))
+SELF_DIR=$(realpath "$(dirname "$0")")
 
+# use TASK_OPT as is
+# shellcheck disable=SC2086
 schtasks.exe /Create /F /TN ${TASK_NAME} ${TASK_OPT} /TR "wsl.exe --cd ~ -e ${SELF_DIR}/${TASK_CMD}"
 
 echo Notice!
