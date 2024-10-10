@@ -107,14 +107,15 @@ def archive(args: argparse.Namespace):
         log.info(f"DST: {ar_dst}")
         archive_win_7z(src, ar_dst, args.dry_run)
     elif exe_from_wsl:
-        ar_dst = windst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
-        log.info(f"DST: {ar_dst}")
-        archive_win_7z(winsrc, ar_dst, args.dry_run)
+        win_ar_dst = windst / ar_dst.name
+        log.info(f"DST: {win_ar_dst}")
+        archive_win_7z(winsrc, win_ar_dst, args.dry_run)
     else:
         ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_UNIX}"
         log.info(f"DST: {ar_dst}")
         archive_unix_bz2(src, ar_dst, args.dry_run)
 
+    # write ar_dst (not win_ar_dst) to latest.txt
     latest = dst / "latest.txt"
     log.info(f"Write the latest archive name: {str(latest)}")
     with latest.open("w") as fout:
