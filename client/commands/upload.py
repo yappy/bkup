@@ -19,8 +19,8 @@ def upload(args: argparse.Namespace):
 
     cmd = [
         "rsync",
-        # archive mode (=-rlptgoD), compress, skip if dst is newer
-        "-azu",
+        # archive mode (=-rlptgoD), skip if dst is newer
+        "-au",
     ]
     if args.ssh:
         cmd += [
