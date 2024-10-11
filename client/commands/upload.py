@@ -17,10 +17,17 @@ def upload(args: argparse.Namespace):
     if not latest_file.is_file():
         raise RuntimeError(f"{str(latest_file)} is not a valid file")
 
+    dst: str = args.dst
+    if not dst.endswith("/"):
+        dst += "/"
+
     cmd = [
         "rsync",
         # archive mode (=-rlptgoD), skip if dst is newer
         "-au",
+        # backup data may contain sensitive data
+        # set permission dir=700, file=600 (owner only)
+        "--chmod=D700,F600"
     ]
     if args.ssh:
         cmd += [
@@ -31,7 +38,7 @@ def upload(args: argparse.Namespace):
         # SRC
         str(latest_file),
         # DST
-        args.dst,
+        dst,
     ]
 
     log.info(" ".join(cmd))
