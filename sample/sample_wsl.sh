@@ -5,7 +5,7 @@
 # > wsl.exe --cd ~ --exec <./path/to/this.sh>
 
 # !!! REPLACE HERE !!!
-SRC_DIRS=~
+SRC_DIR=~
 DST_DIR=/mnt/d/backup/wsl
 KEEP_COUNT=12
 KEEP_DAYS=365
@@ -30,7 +30,7 @@ echo ---------------------------------------------------------------------------
 
 python3 "${SCRIPT_DIR}/bkup.py" \
 archive \
---src ${SRC_DIRS} \
+--src ${SRC_DIR} \
 --dst ${ARCHIVE_DIR} \
 2>&1 \
 | tee -a ${LOG_FILE}
