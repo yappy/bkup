@@ -5,7 +5,7 @@
 # > wsl.exe --cd ~ --exec <./path/to/this.sh>
 
 # !!! REPLACE HERE !!!
-SRC_DIRS=/mnt/c/Users
+SRC_DIRS="/mnt/c/Users"
 DST_DIR=/mnt/d/backup/win
 # Use ~/.ssh/config
 REMOTE=shanghai:/mnt/bkupinbox
