@@ -5,6 +5,10 @@ on: [push, pull_request]
 permissions:
   contents: read
 
+defaults:
+  run:
+    working-directory: ./server
+
 # Make sure CI fails on all warnings, including Clippy lints
 env:
   RUSTFLAGS: "-Dwarnings"
