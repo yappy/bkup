@@ -8,19 +8,15 @@ use std::{path::Path, thread, time::Duration};
 fn filter_event(res: notify::Result<Event>) -> bool {
     match res {
         Ok(ev) => match ev.kind {
-            EventKind::Access(kind) => {
-                if let AccessKind::Close(mode) = kind {
-                    if matches!(mode, AccessMode::Write) {
-                        // access - close_write
-                        return true;
-                    }
-                }
-            }
-            EventKind::Modify(kind) => {
-                if let ModifyKind::Name(_mode) = kind {
-                    // modify - rename
+            EventKind::Access(AccessKind::Close(mode)) => {
+                if matches!(mode, AccessMode::Write) {
+                    // access - close_write
                     return true;
                 }
+            }
+            EventKind::Modify(ModifyKind::Name(_mode)) => {
+                // modify - rename
+                return true;
             }
             _ => {}
         },
