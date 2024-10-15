@@ -1,4 +1,4 @@
-name: Shell Script Lint
+name: Server Rust Test
 
 on: [push, pull_request]
 
