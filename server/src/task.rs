@@ -1,68 +1,34 @@
-use anyhow::{bail, Result};
-use notify::{
-    event::{AccessKind, AccessMode, ModifyKind},
-    Event, EventKind, Watcher,
-};
-use std::{path::Path, thread, time::Duration};
+use std::path::PathBuf;
 
-fn filter_event(res: notify::Result<Event>) -> bool {
-    match res {
-        Ok(ev) => match ev.kind {
-            EventKind::Access(AccessKind::Close(mode)) => {
-                if matches!(mode, AccessMode::Write) {
-                    // access - close_write
-                    return true;
-                }
-            }
-            EventKind::Modify(ModifyKind::Name(_mode)) => {
-                // modify - rename
-                return true;
-            }
-            _ => {}
-        },
-        Err(err) => {
-            println!("{err}");
-        }
-    }
+use anyhow::Result;
 
-    false
+mod inbox;
+mod sync;
+mod watch;
+
+pub struct TaskConfig {
+    pub dry_run: bool,
+
+    pub enable_inbox: bool,
+    pub enable_sync: bool,
+
+    pub inbox_dir: PathBuf,
+    pub repo_dir: PathBuf,
+    pub sync_dir: PathBuf,
 }
 
-pub fn watch<P: AsRef<Path>>(path: P) -> Result<()> {
-    if !path.as_ref().is_dir() {
-        bail!("\"{}\" is not a directory", path.as_ref().to_string_lossy());
+pub fn run(config: &TaskConfig) -> Result<()> {
+    if config.enable_inbox {
+        inbox::run(config.dry_run, &config.inbox_dir, &config.repo_dir)?;
+    }
+    if config.enable_sync {
+        sync::run(config.dry_run, &config.repo_dir, &config.sync_dir)?;
     }
 
-    let (tx, rx) = std::sync::mpsc::channel();
+    Ok(())
+}
 
-    let mut watcher = notify::recommended_watcher(move |res| {
-        // this handler will be called on another thread
-        println!("{:?}", res);
-        tx.send(res).unwrap();
-    })?;
-
-    watcher.watch(path.as_ref(), notify::RecursiveMode::NonRecursive)?;
-    println!("Watching: {}", path.as_ref().to_string_lossy());
-
-    loop {
-        let mut need = false;
-
-        // wait and recv
-        let res1 = rx.recv().unwrap();
-        need |= filter_event(res1);
-        // wait for 100 ms to gather events
-        thread::sleep(Duration::from_millis(100));
-        // consume all the available events without blocking
-        for res2 in rx.try_iter() {
-            need |= filter_event(res2);
-        }
-
-        if need {
-            println!("Do something!");
-        }
-    }
-
-    //watcher.unwatch(path.as_ref())?;
-
-    //Ok(())
+/// Watch config.inbox_dir and call [run]
+pub fn watch(config: &TaskConfig) -> Result<()> {
+    watch::watch(&config.inbox_dir, || run(config))
 }

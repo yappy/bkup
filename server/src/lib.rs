@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
+use task::TaskConfig;
 
 mod task;
 
@@ -11,10 +12,20 @@ const GEN_CONFIG_PATH: &str = "config.toml";
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
 struct Args {
     /// Inbox directory path
-    #[arg(short, long, default_value_t = String::new())]
+    #[arg(long, default_value_t = String::new())]
     inbox_dir: String,
-    #[arg(long)]
+    /// Repository directory path
+    #[arg(long, default_value_t = String::new())]
+    repo_dir: String,
+    /// Cloud sync directory path
+    #[arg(long, default_value_t = String::new())]
+    sync_dir: String,
+    /// Watch mode
+    #[arg(long, short)]
     watch: bool,
+    /// Dry-run
+    #[arg(long, short = 'n')]
+    dry_run: bool,
 
     /// Read parameters from TOML file (other command line parameters will be ignored)
     #[arg(long, default_value_t = String::new())]
@@ -24,6 +35,7 @@ struct Args {
     gen_config: bool,
 }
 
+/// Parse args and call main routines.
 pub fn run() -> Result<()> {
     let mut args = Args::try_parse()?;
 
@@ -43,8 +55,20 @@ pub fn run() -> Result<()> {
         args = toml::from_str(&src)?;
     }
 
-    println!("{:?}", args);
-    task::watch(&args.inbox_dir)?;
+    let config = TaskConfig {
+        dry_run: args.dry_run,
 
-    Ok(())
+        enable_inbox: true,
+        enable_sync: true,
+
+        inbox_dir: args.inbox_dir.into(),
+        repo_dir: args.repo_dir.into(),
+        sync_dir: args.sync_dir.into(),
+    };
+
+    if args.watch {
+        task::watch(&config)
+    } else {
+        task::run(&config)
+    }
 }

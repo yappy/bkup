@@ -105,3 +105,7 @@ WSL からの `.exe` 呼び出しで十分な場合は不要。
 # python3 ./client/runaswin.py -m unittest discover client
 ./win_test_from_wsl.sh
 ```
+
+## server
+
+[Tech Note](note/server.md)
