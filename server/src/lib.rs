@@ -5,7 +5,7 @@ use fern::{
     colors::{Color, ColoredLevelConfig},
     FormatCallback,
 };
-use log::{debug, error, info, trace, warn, LevelFilter, Record};
+use log::{error, info, LevelFilter, Record};
 use serde::{Deserialize, Serialize};
 use task::TaskConfig;
 
@@ -23,7 +23,7 @@ const GEN_CONFIG_PATH: &str = "config.toml";
 struct Args {
     #[arg(long, default_value_t = LOG_LEVEL_DEFAULT)]
     log_level: LevelFilter,
-    #[arg(long, default_value_t = String::from("./bkupsv.log"))]
+    #[arg(long, default_value_t = String::from("bkupsv.log"))]
     log_file: String,
 
     /// Inbox directory path
@@ -70,37 +70,52 @@ pub fn run() -> Result<()> {
         args = toml::from_str(&src)?;
     }
 
+    // setup logger
     let log_file = if !args.log_file.is_empty() {
-        Some(args.log_file)
+        Some(args.log_file.as_str())
     } else {
         None
     };
     setup_logger(args.log_level, log_file)?;
-    error!("log setup OK");
-    warn!("log setup OK");
     info!("log setup OK");
-    debug!("log setup OK");
-    trace!("log setup OK");
-
-    let config = TaskConfig {
-        dry_run: args.dry_run,
-
-        enable_inbox: true,
-        enable_sync: true,
-
-        inbox_dir: args.inbox_dir.into(),
-        repo_dir: args.repo_dir.into(),
-        sync_dir: args.sync_dir.into(),
+    if let Some(log_file) = log_file {
+        info!("log file: {log_file}");
+    } else {
+        info!("log file: disabled");
     };
 
-    if args.watch {
-        task::watch(&config)
+    // catch Error and error!() to logger
+    let cont = || -> Result<()> {
+        let config = TaskConfig {
+            dry_run: args.dry_run,
+
+            enable_inbox: true,
+            enable_sync: true,
+
+            inbox_dir: args.inbox_dir.into(),
+            repo_dir: args.repo_dir.into(),
+            sync_dir: args.sync_dir.into(),
+        };
+
+        if args.watch {
+            task::watch(&config)
+        } else {
+            task::run(&config)
+        }
+    };
+
+    let result = cont();
+    if let Err(ref err) = result {
+        error!("{err:#}");
     } else {
-        task::run(&config)
+        info!("exit successfully")
     }
+
+    // return the result as is
+    result
 }
 
-fn setup_logger(log_level: LevelFilter, log_file: Option<String>) -> Result<()> {
+fn setup_logger(log_level: LevelFilter, log_file: Option<&str>) -> Result<()> {
     let colors = ColoredLevelConfig::new()
         .info(Color::Green)
         .debug(Color::Magenta)
