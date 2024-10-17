@@ -9,7 +9,7 @@ const GEN_CONFIG_PATH: &str = "config.toml";
 
 /// Backup files maintenance daemon
 #[derive(Debug, Parser, Serialize, Deserialize)]
-#[command(author, version, about, long_about = None, arg_required_else_help = true)]
+#[command(author, version, about, long_about = None)]
 struct Args {
     /// Inbox directory path
     #[arg(long, default_value_t = String::new())]
