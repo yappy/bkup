@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use log::{info, warn};
 use regex::Regex;
 use std::{path::Path, sync::LazyLock};
 
@@ -9,7 +10,7 @@ static ARCHIVE_RE: LazyLock<Regex> =
 pub fn run(_dry_run: bool, inbox_dir: &Path, _repo_dir: &Path) -> Result<()> {
     let inbox_dir = std::path::absolute(inbox_dir)?;
 
-    println!("Scan: {}", inbox_dir.to_string_lossy());
+    info!("scan start: {}", inbox_dir.to_string_lossy());
     let rd = inbox_dir
         .read_dir()
         .with_context(|| format!("cannot read directory: {}", inbox_dir.to_string_lossy()))?;
@@ -21,18 +22,21 @@ pub fn run(_dry_run: bool, inbox_dir: &Path, _repo_dir: &Path) -> Result<()> {
     });
     for sub in rd {
         if let Err(err) = sub {
-            println!("warning: {err}");
+            warn!("warning: {err:#}");
             continue;
         }
         let sub = sub?;
+
         let path = sub.path();
         let parts = parse_file_name(&path);
         let Some((tag, date)) = parts else {
-            println!("ignore: {}", path.to_string_lossy());
+            warn!("ignore: {}", path.to_string_lossy());
             continue;
         };
-        println!("find: {}, {tag}, {date}", path.to_string_lossy());
+        info!("find: {}, tag={tag}, date={date}", path.to_string_lossy());
     }
+
+    info!("scan end");
 
     Ok(())
 }

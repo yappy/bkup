@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+use log::{debug, info, warn};
 use notify::{
     event::{AccessKind, AccessMode, ModifyKind},
     Event, EventKind, Watcher,
@@ -21,7 +22,7 @@ fn filter_event(res: notify::Result<Event>) -> bool {
             _ => {}
         },
         Err(err) => {
-            println!("{err}");
+            warn!("{err:#}");
         }
     }
 
@@ -37,12 +38,12 @@ pub fn watch<P: AsRef<Path>, F: Fn() -> Result<()>>(path: P, func: F) -> Result<
 
     let mut watcher = notify::recommended_watcher(move |res| {
         // this handler will be called on another thread
-        println!("{:?}", res);
+        debug!("{:?}", res);
         tx.send(res).unwrap();
     })?;
 
     watcher.watch(path.as_ref(), notify::RecursiveMode::NonRecursive)?;
-    println!("Watching: {}", path.as_ref().to_string_lossy());
+    info!("watching: {}", path.as_ref().to_string_lossy());
 
     loop {
         let mut need = false;
@@ -58,7 +59,7 @@ pub fn watch<P: AsRef<Path>, F: Fn() -> Result<()>>(path: P, func: F) -> Result<
         }
 
         if need {
-            println!("Do something!");
+            info!("Do something!");
             // TODO continue even if error?
             func()?;
         }
