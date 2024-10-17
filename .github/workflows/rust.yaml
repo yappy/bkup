@@ -37,7 +37,7 @@ jobs:
         run: |
           cargo build
 
-      - name: Build - Debug
+      - name: Build - Release
         run: |
           cargo build --release
 
