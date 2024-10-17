@@ -1,24 +1,39 @@
 use anyhow::Result;
+use chrono::{DateTime, Local, SecondsFormat};
 use clap::Parser;
+use fern::{
+    colors::{Color, ColoredLevelConfig},
+    FormatCallback,
+};
+use log::{debug, error, info, trace, warn, LevelFilter, Record};
 use serde::{Deserialize, Serialize};
 use task::TaskConfig;
 
 mod task;
 
+#[cfg(debug_assertions)]
+const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Trace;
+#[cfg(not(debug_assertions))]
+const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Info;
 const GEN_CONFIG_PATH: &str = "config.toml";
 
 /// Backup files maintenance daemon
 #[derive(Debug, Parser, Serialize, Deserialize)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    #[arg(long, default_value_t = LOG_LEVEL_DEFAULT)]
+    log_level: LevelFilter,
+    #[arg(long, default_value_t = String::from("./bkupsv.log"))]
+    log_file: String,
+
     /// Inbox directory path
-    #[arg(long, default_value_t = String::new())]
+    #[arg(long, default_value_t = String::from("/tmp/inbox"))]
     inbox_dir: String,
     /// Repository directory path
-    #[arg(long, default_value_t = String::new())]
+    #[arg(long, default_value_t = String::from("/tmp/repo"))]
     repo_dir: String,
     /// Cloud sync directory path
-    #[arg(long, default_value_t = String::new())]
+    #[arg(long, default_value_t = String::from("/tmp/sync"))]
     sync_dir: String,
     /// Watch mode
     #[arg(long, short)]
@@ -55,6 +70,18 @@ pub fn run() -> Result<()> {
         args = toml::from_str(&src)?;
     }
 
+    let log_file = if !args.log_file.is_empty() {
+        Some(args.log_file)
+    } else {
+        None
+    };
+    setup_logger(args.log_level, log_file)?;
+    error!("log setup OK");
+    warn!("log setup OK");
+    info!("log setup OK");
+    debug!("log setup OK");
+    trace!("log setup OK");
+
     let config = TaskConfig {
         dry_run: args.dry_run,
 
@@ -71,4 +98,51 @@ pub fn run() -> Result<()> {
     } else {
         task::run(&config)
     }
+}
+
+fn setup_logger(log_level: LevelFilter, log_file: Option<String>) -> Result<()> {
+    let colors = ColoredLevelConfig::new()
+        .info(Color::Green)
+        .debug(Color::Magenta)
+        .trace(Color::BrightBlue);
+
+    let fern = fern::Dispatch::new();
+
+    // log level
+    let fern = fern.level(log_level);
+
+    // output
+    let fern = fern.chain(
+        fern::Dispatch::new()
+            .format(move |out, message, record| {
+                let time: DateTime<Local> = Local::now();
+                out.finish(format_args!(
+                    "{} [{:5}] {}",
+                    time.to_rfc3339_opts(SecondsFormat::Secs, false),
+                    colors.color(record.level()),
+                    message
+                ))
+            })
+            .chain(std::io::stdout()),
+    );
+    let fern = if let Some(log_file) = log_file {
+        fern.chain(
+            fern::Dispatch::new()
+                .format(move |out: FormatCallback, message, record: &Record| {
+                    let time: DateTime<Local> = Local::now();
+                    out.finish(format_args!(
+                        "{} [{:5}] {}",
+                        time.to_rfc3339_opts(SecondsFormat::Secs, false),
+                        record.level(),
+                        message
+                    ))
+                })
+                .chain(fern::log_file(log_file)?),
+        )
+    } else {
+        fern
+    };
+
+    fern.apply()?;
+    Ok(())
 }
