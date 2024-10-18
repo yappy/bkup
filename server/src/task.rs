@@ -20,7 +20,6 @@ pub struct TaskConfig {
     pub sync_dir: PathBuf,
 
     pub keep_count: u32,
-    pub keep_days: u32,
     pub keep_size: u64,
 }
 

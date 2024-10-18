@@ -9,12 +9,6 @@ pub fn run(config: &TaskConfig) -> Result<()> {
 
     let repo = Repository::init(&config.repo_dir)?;
 
-    info!("dry_run {}", config.dry_run);
-    info!(
-        "{} {} {}",
-        config.keep_count, config.keep_days, config.keep_size
-    );
-
     for (tag, list) in repo.data.iter() {
         clean_one(config, tag, list)?;
     }
@@ -33,10 +27,6 @@ fn clean_one(config: &TaskConfig, tag: &str, list: &[Entry]) -> Result<()> {
         if keep_count < list.len() {
             delete_count = delete_count.max(list.len() - keep_count);
         }
-    }
-
-    if config.keep_days != 0 {
-        // TODO
     }
 
     if config.keep_size != 0 {

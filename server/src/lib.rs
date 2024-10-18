@@ -41,9 +41,6 @@ struct Args {
     #[arg(long, default_value_t = 0)]
     keep_count: u32,
     /// repo: condition to keep archive files (0 to disable)
-    #[arg(long, default_value_t = 0)]
-    keep_days: u32,
-    /// repo: condition to keep archive files (0 to disable)
     #[arg(long, default_value_t = String::from("0"))]
     keep_size: String,
 
@@ -111,7 +108,6 @@ pub fn run() -> Result<()> {
         sync_dir: args.sync_dir.into(),
 
         keep_count: args.keep_count,
-        keep_days: args.keep_days,
         keep_size: fssys::parse_size(&args.keep_size)?,
     };
     let cont = || -> Result<()> {
