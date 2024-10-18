@@ -23,8 +23,8 @@ def upload(args: argparse.Namespace):
 
     cmd = [
         "rsync",
-        # archive mode (=-rlptgoD), skip if dst is newer
-        "-au",
+        # archive mode (=-rlptgoD), use checksum to check if the file is changed
+        "-acv",
         # backup data may contain sensitive data
         # set permission dir=700, file=600 (owner only)
         "--chmod=D700,F600"
