@@ -9,6 +9,7 @@ use log::{error, info, LevelFilter, Record};
 use serde::{Deserialize, Serialize};
 use task::TaskConfig;
 
+mod fssys;
 mod task;
 
 #[cfg(debug_assertions)]
@@ -90,6 +91,7 @@ pub fn run() -> Result<()> {
             dry_run: args.dry_run,
 
             enable_inbox: true,
+            enable_repo: true,
             enable_sync: true,
 
             inbox_dir: args.inbox_dir.into(),

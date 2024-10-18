@@ -3,9 +3,7 @@ use log::info;
 use std::{path::Path, process::Command};
 
 const RCLONE_CMD: &str = "rclone";
-const RCLONE_ERROR_HELP: &str = "Cannot execute rclone
-[HINT] Download rclone and install:
-https://rclone.org/downloads/";
+const RCLONE_HINT: &str = "[HINT] Download rclone and install: https://rclone.org/downloads/";
 
 pub fn run(_dry_run: bool, _repo_dir: &Path, _sync_dir: &Path) -> Result<()> {
     check_rclone()?;
@@ -19,7 +17,8 @@ fn check_rclone() -> Result<()> {
     let output = Command::new(RCLONE_CMD)
         .arg("version")
         .output()
-        .context(RCLONE_ERROR_HELP)?;
+        .with_context(|| format!("Cannot execute rclone\n{RCLONE_HINT}"))?;
+    info!("{RCLONE_HINT}");
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     if !stdout.is_empty() {

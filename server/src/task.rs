@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 
 mod inbox;
+mod repo;
 mod sync;
 mod watch;
 
@@ -10,6 +11,7 @@ pub struct TaskConfig {
     pub dry_run: bool,
 
     pub enable_inbox: bool,
+    pub enable_repo: bool,
     pub enable_sync: bool,
 
     pub inbox_dir: PathBuf,
@@ -20,6 +22,9 @@ pub struct TaskConfig {
 pub fn run(config: &TaskConfig) -> Result<()> {
     if config.enable_inbox {
         inbox::run(config.dry_run, &config.inbox_dir, &config.repo_dir)?;
+    }
+    if config.enable_repo {
+        repo::run(config.dry_run, &config.repo_dir, &config.sync_dir)?;
     }
     if config.enable_sync {
         sync::run(config.dry_run, &config.repo_dir, &config.sync_dir)?;
