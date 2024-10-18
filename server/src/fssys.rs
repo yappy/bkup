@@ -1,7 +1,7 @@
 // TODO: remove later
 #![allow(dead_code)]
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, bail, ensure, Context, Result};
 use log::{info, warn};
 use regex::Regex;
 use std::{
@@ -141,11 +141,54 @@ impl Repository {
     }
 }
 
-const ARCHIVE_EXT: &[&str] = &["zip", "7z", "tar.gz", "tar.bz2", "tar.xz"];
-static ARCHIVE_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(.*?)[\-\_]?(\d{8,})$").unwrap());
+pub fn parse_size(s: &str) -> Result<u64> {
+    let mut n: u64 = 0;
+    let mut cur: Option<u64> = None;
 
+    ensure!(!s.is_empty(), "parse size failed (empty string)");
+
+    for c in s.chars() {
+        match c {
+            '0'..='9' => {
+                let t = c as u64 - '0' as u64;
+                let mut tmp = cur.unwrap_or(0);
+                tmp = tmp.checked_mul(10).ok_or_else(|| anyhow!("overflow"))?;
+                tmp = tmp.checked_add(t).ok_or_else(|| anyhow!("overflow"))?;
+                cur = Some(tmp);
+            }
+            'k' | 'K' | 'm' | 'M' | 'g' | 'G' | 't' | 'T' => {
+                let factor = match c {
+                    'k' | 'K' => 1u64 << 10,
+                    'm' | 'M' => 1u64 << 20,
+                    'g' | 'G' => 1u64 << 30,
+                    't' | 'T' => 1u64 << 40,
+                    _ => panic!(),
+                };
+                let mut tmp = cur.ok_or_else(|| anyhow!("parse size failed: {s}"))?;
+                tmp = tmp.checked_mul(factor).ok_or_else(|| anyhow!("overflow"))?;
+                n = n.checked_add(tmp).ok_or_else(|| anyhow!("overflow"))?;
+                cur = None;
+            }
+            _ => {
+                bail!("parse size failed: {s}");
+            }
+        }
+    }
+    n = n
+        .checked_add(cur.unwrap_or(0))
+        .ok_or_else(|| anyhow!("overflow"))?;
+
+    Ok(n)
+}
+
+/// Get tag and date parts from file name.
+///
+/// e.g. "abc-20240101.zip" => ("abc", "20240101")
 pub fn parse_file_name<P: AsRef<Path>>(path: P) -> Option<(String, String)> {
+    const ARCHIVE_EXT: &[&str] = &["zip", "7z", "tar.gz", "tar.bz2", "tar.xz"];
+    static ARCHIVE_RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^(.*?)[\-\_]?(\d{8,})$").unwrap());
+
     // get filename as utf-8
     // return None if failed
     let name = path.as_ref().file_name()?.to_str()?;
@@ -171,6 +214,29 @@ pub fn parse_file_name<P: AsRef<Path>>(path: P) -> Option<(String, String)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_size() -> Result<()> {
+        assert_eq!(parse_size(&u64::MIN.to_string())?, u64::MIN);
+        assert_eq!(parse_size("12345")?, 12345);
+        assert_eq!(parse_size(&u64::MAX.to_string())?, u64::MAX);
+
+        assert_eq!(parse_size("123k")?, 123u64 * 1024);
+        assert_eq!(parse_size("123K")?, 123u64 * 1024);
+        assert_eq!(parse_size("123m")?, 123u64 * 1024 * 1024);
+        assert_eq!(parse_size("123M")?, 123u64 * 1024 * 1024);
+        assert_eq!(parse_size("123g")?, 123u64 * 1024 * 1024 * 1024);
+        assert_eq!(parse_size("123G")?, 123u64 * 1024 * 1024 * 1024);
+        assert_eq!(parse_size("123t")?, 123u64 * 1024 * 1024 * 1024 * 1024);
+        assert_eq!(parse_size("123T")?, 123u64 * 1024 * 1024 * 1024 * 1024);
+
+        assert!(parse_size("").is_err());
+        assert!(parse_size("k").is_err());
+        assert!(parse_size("a").is_err());
+        assert!(parse_size(&format!("{}k", u64::MAX)).is_err());
+
+        Ok(())
+    }
 
     #[test]
     fn test_parse_file_name() {

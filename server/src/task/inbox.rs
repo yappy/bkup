@@ -1,12 +1,12 @@
 use anyhow::{Context, Result};
 use log::{info, warn};
-use std::path::Path;
 
+use super::TaskConfig;
 use crate::fssys;
 
-pub fn run(_dry_run: bool, inbox_dir: &Path, repo_dir: &Path) -> Result<()> {
-    let inbox_dir = std::path::absolute(inbox_dir)?;
-    let _repo_dir = std::path::absolute(repo_dir)?;
+pub fn run(config: &TaskConfig) -> Result<()> {
+    let inbox_dir = std::path::absolute(&config.inbox_dir)?;
+    let _repo_dir = std::path::absolute(&config.repo_dir)?;
 
     info!("scan start: {}", inbox_dir.to_string_lossy());
     let rd = inbox_dir

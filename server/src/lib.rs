@@ -36,6 +36,17 @@ struct Args {
     /// Cloud sync directory path
     #[arg(long, default_value_t = String::from("/tmp/sync"))]
     sync_dir: String,
+
+    /// repo: condition to keep archive files (0 to disable)
+    #[arg(long, default_value_t = 0)]
+    keep_count: u32,
+    /// repo: condition to keep archive files (0 to disable)
+    #[arg(long, default_value_t = 0)]
+    keep_days: u32,
+    /// repo: condition to keep archive files (0 to disable)
+    #[arg(long, default_value_t = String::from("0"))]
+    keep_size: String,
+
     /// Watch mode
     #[arg(long, short)]
     watch: bool,
@@ -44,10 +55,10 @@ struct Args {
     dry_run: bool,
 
     /// Read parameters from TOML file (other command line parameters will be ignored)
-    #[arg(long, default_value_t = String::new())]
+    #[arg(long, short, default_value_t = String::new())]
     config_file: String,
     /// Generate a config file template and exit
-    #[arg(long)]
+    #[arg(long, short)]
     gen_config: bool,
 }
 
@@ -60,8 +71,8 @@ pub fn run() -> Result<()> {
         println!("Generate config file: {GEN_CONFIG_PATH}");
         args.config_file = "".to_string();
         args.gen_config = false;
-        let src = toml::to_string_pretty(&args)?;
-        std::fs::write(GEN_CONFIG_PATH, src)?;
+        let toml = toml::to_string_pretty(&args)?;
+        std::fs::write(GEN_CONFIG_PATH, toml)?;
         return Ok(());
     }
 
@@ -85,20 +96,25 @@ pub fn run() -> Result<()> {
         info!("log file: disabled");
     };
 
-    // catch Error and error!() to logger
+    let toml = toml::to_string_pretty(&args)?;
+    info!("arguments:\n{toml}");
+
+    let config = TaskConfig {
+        dry_run: args.dry_run,
+
+        enable_inbox: true,
+        enable_repo: true,
+        enable_sync: true,
+
+        inbox_dir: args.inbox_dir.into(),
+        repo_dir: args.repo_dir.into(),
+        sync_dir: args.sync_dir.into(),
+
+        keep_count: args.keep_count,
+        keep_days: args.keep_days,
+        keep_size: fssys::parse_size(&args.keep_size)?,
+    };
     let cont = || -> Result<()> {
-        let config = TaskConfig {
-            dry_run: args.dry_run,
-
-            enable_inbox: true,
-            enable_repo: true,
-            enable_sync: true,
-
-            inbox_dir: args.inbox_dir.into(),
-            repo_dir: args.repo_dir.into(),
-            sync_dir: args.sync_dir.into(),
-        };
-
         if args.watch {
             task::watch(&config)
         } else {
@@ -106,6 +122,7 @@ pub fn run() -> Result<()> {
         }
     };
 
+    // catch Error and error!() to logger
     let result = cont();
     if let Err(ref err) = result {
         error!("{err:#}");

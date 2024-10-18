@@ -1,11 +1,13 @@
 use anyhow::{ensure, Context, Result};
 use log::info;
-use std::{path::Path, process::Command};
+use std::process::Command;
+
+use super::TaskConfig;
 
 const RCLONE_CMD: &str = "rclone";
 const RCLONE_HINT: &str = "[HINT] Download rclone and install: https://rclone.org/downloads/";
 
-pub fn run(_dry_run: bool, _repo_dir: &Path, _sync_dir: &Path) -> Result<()> {
+pub fn run(_config: &TaskConfig) -> Result<()> {
     check_rclone()?;
 
     Ok(())

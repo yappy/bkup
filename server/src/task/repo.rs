@@ -1,13 +1,20 @@
 use anyhow::Result;
 use log::info;
-use std::path::Path;
 
+use super::TaskConfig;
 use crate::fssys::Repository;
 
-pub fn run(_dry_run: bool, repo_dir: &Path, _sync_dir: &Path) -> Result<()> {
-    let _repo = Repository::init(repo_dir)?;
+pub fn run(config: &TaskConfig) -> Result<()> {
+    info!("[repository] start");
 
-    info!("repo task");
+    let _repo = Repository::init(&config.repo_dir)?;
 
+    info!("dry_run {}", config.dry_run);
+    info!(
+        "{} {} {}",
+        config.keep_count, config.keep_days, config.keep_size
+    );
+
+    info!("[repository] finish");
     Ok(())
 }
