@@ -5,22 +5,24 @@ use anyhow::{anyhow, bail, ensure, Context, Result};
 use log::{info, warn};
 use regex::Regex;
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     path::{Path, PathBuf},
     sync::LazyLock,
 };
 
 pub struct Repository {
-    root_dir: PathBuf,
+    pub root_dir: PathBuf,
     /// tag => [Entry]
-    data: HashMap<String, Vec<Entry>>,
+    pub data: BTreeMap<String, Vec<Entry>>,
 }
 
-struct Entry {
-    /// sorted by this
-    date: String,
-    path: PathBuf,
-    size: u64,
+#[derive(Eq, Ord, PartialEq, PartialOrd)]
+pub struct Entry {
+    /// sorted by dictionary order
+    pub date: String,
+
+    pub path: PathBuf,
+    pub size: u64,
 }
 
 impl Repository {
@@ -37,7 +39,7 @@ impl Repository {
             .read_dir()
             .with_context(|| format!("cannot read directory: {}", root_dir.to_string_lossy()))?;
 
-        let mut data = HashMap::new();
+        let mut data = BTreeMap::new();
 
         for sub in rd {
             if let Err(err) = sub {
@@ -82,6 +84,7 @@ impl Repository {
         Ok(Self { root_dir, data })
     }
 
+    /// scan dirname and return sorted archive entry list
     fn scan_sub(dir: &Path, dirname: &str) -> Result<Vec<Entry>> {
         info!("scan start: {}", dir.to_string_lossy());
 
@@ -136,6 +139,9 @@ impl Repository {
         }
 
         info!("scan end");
+
+        // date order
+        result.sort();
 
         Ok(result)
     }
