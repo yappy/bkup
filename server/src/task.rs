@@ -28,13 +28,13 @@ pub fn run(config: &TaskConfig) -> Result<()> {
     prepair(config)?;
 
     if config.enable_repo {
-        repo::run(&config)?;
+        repo::run(config)?;
     }
     if config.enable_inbox {
-        inbox::run(&config)?;
+        inbox::run(config)?;
     }
     if config.enable_sync {
-        sync::run(&config)?;
+        sync::run(config)?;
     }
 
     Ok(())
