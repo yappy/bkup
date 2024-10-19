@@ -8,6 +8,7 @@ mod repo;
 mod sync;
 mod watch;
 
+#[derive(Default)]
 pub struct TaskConfig {
     pub dry_run: bool,
 

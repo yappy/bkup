@@ -57,3 +57,80 @@ fn clean_one(config: &TaskConfig, tag: &str, list: &[Entry]) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_repo_clean_count() -> Result<()> {
+        const TAG: &str = "test";
+        const KEEP_COUNT: u32 = 3;
+        const TOTAL: u32 = 10;
+
+        let dir = tempfile::tempdir()?;
+        let subdir = dir.path().join(TAG);
+        std::fs::create_dir(&subdir)?;
+
+        for i in 0..TOTAL {
+            let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
+            std::fs::write(&path, &[])?;
+        }
+
+        let config = TaskConfig {
+            repo_dir: dir.path().into(),
+            keep_count: KEEP_COUNT,
+            ..Default::default()
+        };
+
+        for i in 0..TOTAL {
+            let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
+            if i < TOTAL - KEEP_COUNT {
+                assert!(std::fs::exists(path)?);
+            } else {
+                assert!(std::fs::exists(path)?);
+            }
+        }
+
+        run(&config)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_repo_clean_size() -> Result<()> {
+        const TAG: &str = "test";
+        const KEEP_COUNT: u64 = 3;
+        const FILE_SIZE: u64 = 1024;
+        const KEEP_SIZE: u64 = FILE_SIZE * (KEEP_COUNT + 1) - 1;
+        const TOTAL: u64 = 10;
+
+        let dir = tempfile::tempdir()?;
+        let subdir = dir.path().join(TAG);
+        std::fs::create_dir(&subdir)?;
+
+        for i in 0..TOTAL {
+            let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
+            std::fs::write(&path, &[0; FILE_SIZE as usize])?;
+        }
+
+        let config = TaskConfig {
+            repo_dir: dir.path().into(),
+            keep_size: KEEP_SIZE,
+            ..Default::default()
+        };
+
+        for i in 0..TOTAL {
+            let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
+            if i < TOTAL - KEEP_COUNT {
+                assert!(std::fs::exists(path)?);
+            } else {
+                assert!(std::fs::exists(path)?);
+            }
+        }
+
+        run(&config)?;
+
+        Ok(())
+    }
+}
