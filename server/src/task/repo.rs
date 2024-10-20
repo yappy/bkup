@@ -64,6 +64,8 @@ mod tests {
 
     #[test]
     fn test_repo_clean_count() -> Result<()> {
+        crate::setup_test_logger();
+
         const TAG: &str = "test";
         const KEEP_COUNT: u32 = 3;
         const TOTAL: u32 = 10;
@@ -82,11 +84,12 @@ mod tests {
             keep_count: KEEP_COUNT,
             ..Default::default()
         };
+        run(&config)?;
 
         for i in 0..TOTAL {
             let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
             if i < TOTAL - KEEP_COUNT {
-                assert!(std::fs::exists(path)?);
+                assert!(!std::fs::exists(path)?);
             } else {
                 assert!(std::fs::exists(path)?);
             }
@@ -99,6 +102,8 @@ mod tests {
 
     #[test]
     fn test_repo_clean_size() -> Result<()> {
+        crate::setup_test_logger();
+
         const TAG: &str = "test";
         const KEEP_COUNT: u64 = 3;
         const FILE_SIZE: u64 = 1024;
@@ -119,11 +124,12 @@ mod tests {
             keep_size: KEEP_SIZE,
             ..Default::default()
         };
+        run(&config)?;
 
         for i in 0..TOTAL {
             let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
             if i < TOTAL - KEEP_COUNT {
-                assert!(std::fs::exists(path)?);
+                assert!(!std::fs::exists(path)?);
             } else {
                 assert!(std::fs::exists(path)?);
             }

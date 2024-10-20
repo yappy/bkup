@@ -50,7 +50,11 @@ fn accept_move(repo_dir: &Path, src: &Path, name: &str, tag: &str) -> Result<()>
     // dstfile = repo/tag/filename
     let dst = dir.join(name);
 
-    info!("move: {} => {}", src.to_string_lossy(), dst.to_string_lossy());
+    info!(
+        "move: {} => {}",
+        src.to_string_lossy(),
+        dst.to_string_lossy()
+    );
     // NOTE: it would be better to check if kind() is ErrorKind::CrossesDevices
     // after stabilized
     if let Err(err) = std::fs::rename(src, &dst) {

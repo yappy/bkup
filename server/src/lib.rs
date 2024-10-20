@@ -1,11 +1,8 @@
 use anyhow::Result;
 use chrono::{DateTime, Local, SecondsFormat};
 use clap::Parser;
-use fern::{
-    colors::{Color, ColoredLevelConfig},
-    FormatCallback,
-};
-use log::{error, info, LevelFilter, Record};
+use fern::colors::{Color, ColoredLevelConfig};
+use log::{error, info, LevelFilter};
 use serde::{Deserialize, Serialize};
 use task::TaskConfig;
 
@@ -130,49 +127,64 @@ pub fn run() -> Result<()> {
     result
 }
 
-fn setup_logger(log_level: LevelFilter, log_file: Option<&str>) -> Result<()> {
-    let colors = ColoredLevelConfig::new()
-        .info(Color::Green)
-        .debug(Color::Magenta)
-        .trace(Color::BrightBlue);
+fn create_fern(color: bool) -> fern::Dispatch {
+    let colors = if color {
+        Some(
+            ColoredLevelConfig::new()
+                .info(Color::Green)
+                .debug(Color::Magenta)
+                .trace(Color::BrightBlue),
+        )
+    } else {
+        None
+    };
 
+    fern::Dispatch::new().format(move |out, message, record| {
+        let time: DateTime<Local> = Local::now();
+        let level = record.level();
+        let level = colors.map_or(level.to_string(), |colors| colors.color(level).to_string());
+        out.finish(format_args!(
+            "{} [{:5}] {}",
+            time.to_rfc3339_opts(SecondsFormat::Secs, false),
+            level,
+            message
+        ))
+    })
+}
+
+fn setup_logger(log_level: LevelFilter, log_file: Option<&str>) -> Result<()> {
     let fern = fern::Dispatch::new();
 
     // log level
     let fern = fern.level(log_level);
 
     // output
-    let fern = fern.chain(
-        fern::Dispatch::new()
-            .format(move |out, message, record| {
-                let time: DateTime<Local> = Local::now();
-                out.finish(format_args!(
-                    "{} [{:5}] {}",
-                    time.to_rfc3339_opts(SecondsFormat::Secs, false),
-                    colors.color(record.level()),
-                    message
-                ))
-            })
-            .chain(std::io::stdout()),
-    );
+    let fern = fern.chain(create_fern(true).chain(std::io::stdout()));
     let fern = if let Some(log_file) = log_file {
-        fern.chain(
-            fern::Dispatch::new()
-                .format(move |out: FormatCallback, message, record: &Record| {
-                    let time: DateTime<Local> = Local::now();
-                    out.finish(format_args!(
-                        "{} [{:5}] {}",
-                        time.to_rfc3339_opts(SecondsFormat::Secs, false),
-                        record.level(),
-                        message
-                    ))
-                })
-                .chain(fern::log_file(log_file)?),
-        )
+        fern.chain(create_fern(false).chain(fern::log_file(log_file)?))
     } else {
         fern
     };
 
     fern.apply()?;
     Ok(())
+}
+
+/// Fern setup for test.
+///
+/// println! with color.
+/// Required:
+/// cargo test -- --nocapture
+#[cfg(test)]
+fn setup_test_logger() {
+    // std::io::stdout() prints logs even if --nocapture is not passed...
+    // let fern = create_fern(true).chain(std::io::stdout());
+
+    let fern = create_fern(true).chain(fern::Output::call(|record| {
+        println!("{}", record.args());
+    }));
+
+    // ignore error due to duplicated setup
+    // (test functions will be executed parallelly)
+    let _ = fern.apply();
 }
