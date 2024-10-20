@@ -55,17 +55,34 @@ struct Args {
     gen_config: String,
 }
 
-/// Parse args and call main routines.
+/// Use system argv.
 pub fn run() -> Result<()> {
-    let mut args = Args::try_parse()?;
+    let args = Args::try_parse()?;
 
+    run_internal(args)
+}
+
+/// Use &str list. (argv[0] is automatically added)
+pub fn run_args(argv1: &[&str]) -> Result<()> {
+    let argv0 = &[env!("CARGO_PKG_NAME")];
+    let argv = argv0.iter().chain(argv1);
+    let args = Args::try_parse_from(argv)?;
+
+    run_internal(args)
+}
+
+/// Parse args and call main routines.
+fn run_internal(mut args: Args) -> Result<()> {
     // write to a file and exit if --gen-config
     if !args.gen_config.is_empty() {
-        println!("Generate config file: {}", args.gen_config);
+        let path = args.gen_config;
         args.config_file = String::new();
         args.gen_config = String::new();
         let toml = toml::to_string_pretty(&args)?;
-        std::fs::write(args.gen_config, toml)?;
+
+        println!("Generate config file: {}", &path);
+        std::fs::write(&path, toml)?;
+
         return Ok(());
     }
 
@@ -186,4 +203,35 @@ fn setup_test_logger() {
     // ignore error due to duplicated setup
     // (test functions will be executed parallelly)
     let _ = fern.apply();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn run_help() -> Result<()> {
+        let err = run_args(&["-h"]).unwrap_err();
+        let err: clap::Error = err.downcast()?;
+        assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+
+        let err = run_args(&["--help"]).unwrap_err();
+        let err: clap::Error = err.downcast()?;
+        assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_gen_config() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.toml");
+
+        run_args(&["--gen-config", &path.to_string_lossy()])?;
+
+        let meta = std::fs::metadata(path)?;
+        assert_ne!(meta.len(), 0);
+
+        Ok(())
+    }
 }
