@@ -13,32 +13,31 @@ mod task;
 const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Trace;
 #[cfg(not(debug_assertions))]
 const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Info;
-const GEN_CONFIG_PATH: &str = "config.toml";
 
 /// Backup files maintenance daemon
 #[derive(Debug, Parser, Serialize, Deserialize)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(long, default_value_t = LOG_LEVEL_DEFAULT)]
+    #[arg(long, value_name = "LEVEL", default_value_t = LOG_LEVEL_DEFAULT)]
     log_level: LevelFilter,
-    #[arg(long, default_value_t = String::from("bkupsv.log"))]
+    #[arg(long, value_name = "FILE", default_value_t = String::from("bkupsv.log"))]
     log_file: String,
 
     /// Inbox directory path
-    #[arg(long, default_value_t = String::from("/tmp/inbox"))]
+    #[arg(long, value_name = "DIR", default_value_t = String::from("/tmp/inbox"))]
     inbox_dir: String,
     /// Repository directory path
-    #[arg(long, default_value_t = String::from("/tmp/repo"))]
+    #[arg(long, value_name = "DIR", default_value_t = String::from("/tmp/repo"))]
     repo_dir: String,
     /// Cloud sync directory path
-    #[arg(long, default_value_t = String::from("/tmp/sync"))]
+    #[arg(long, value_name = "DIR", default_value_t = String::from("/tmp/sync"))]
     sync_dir: String,
 
     /// repo: condition to keep archive files (0 to disable)
-    #[arg(long, default_value_t = 0)]
+    #[arg(long, value_name = "COUNT", default_value_t = 0)]
     keep_count: u32,
     /// repo: condition to keep archive files (0 to disable)
-    #[arg(long, default_value_t = String::from("0"))]
+    #[arg(long, value_name = "SIZE", default_value_t = String::from("0"))]
     keep_size: String,
 
     /// Watch mode
@@ -49,11 +48,11 @@ struct Args {
     dry_run: bool,
 
     /// Read parameters from TOML file (other command line parameters will be ignored)
-    #[arg(long, short, default_value_t = String::new())]
+    #[arg(long, short, value_name = "FILE", default_value_t = String::new())]
     config_file: String,
     /// Generate a config file template and exit
-    #[arg(long, short)]
-    gen_config: bool,
+    #[arg(long, short, value_name = "FILE", default_value_t = String::new())]
+    gen_config: String,
 }
 
 /// Parse args and call main routines.
@@ -61,12 +60,12 @@ pub fn run() -> Result<()> {
     let mut args = Args::try_parse()?;
 
     // write to a file and exit if --gen-config
-    if args.gen_config {
-        println!("Generate config file: {GEN_CONFIG_PATH}");
-        args.config_file = "".to_string();
-        args.gen_config = false;
+    if !args.gen_config.is_empty() {
+        println!("Generate config file: {}", args.gen_config);
+        args.config_file = String::new();
+        args.gen_config = String::new();
         let toml = toml::to_string_pretty(&args)?;
-        std::fs::write(GEN_CONFIG_PATH, toml)?;
+        std::fs::write(args.gen_config, toml)?;
         return Ok(());
     }
 
