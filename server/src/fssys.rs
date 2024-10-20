@@ -117,7 +117,7 @@ impl Repository {
 
             let parts = parse_file_name(&path);
             // cannot parse
-            let Some((tag, date)) = parts else {
+            let Some((_name, tag, date)) = parts else {
                 warn!("ignore: {}", path.to_string_lossy());
                 continue;
             };
@@ -187,10 +187,12 @@ pub fn parse_size(s: &str) -> Result<u64> {
     Ok(n)
 }
 
-/// Get tag and date parts from file name.
+/// Get (filename, tag, date) parts from file name.
+///
+/// If not UTF-8, parse will be failed.
 ///
 /// e.g. "abc-20240101.zip" => ("abc", "20240101")
-pub fn parse_file_name<P: AsRef<Path>>(path: P) -> Option<(String, String)> {
+pub fn parse_file_name<P: AsRef<Path>>(path: P) -> Option<(String, String, String)> {
     const ARCHIVE_EXT: &[&str] = &["zip", "7z", "tar.gz", "tar.bz2", "tar.xz"];
     static ARCHIVE_RE: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^(.*?)[\-\_]?(\d{8,})$").unwrap());
@@ -212,6 +214,7 @@ pub fn parse_file_name<P: AsRef<Path>>(path: P) -> Option<(String, String)> {
     // RE match
     let caps = ARCHIVE_RE.captures(body)?;
     Some((
+        name.to_string(),
         caps.get(1).unwrap().as_str().to_string(),
         caps.get(2).unwrap().as_str().to_string(),
     ))
@@ -250,7 +253,11 @@ mod tests {
         assert_eq!(parse_file_name("/aaa/bbb/ccc/abc.txt"), None);
         assert_eq!(
             parse_file_name("/aaa/bbb/ccc/test-20240101.tar.gz"),
-            Some(("test".into(), "20240101".into()))
+            Some((
+                "test-20240101.tar.gz".into(),
+                "test".into(),
+                "20240101".into()
+            ))
         );
     }
 }
