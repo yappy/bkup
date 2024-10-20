@@ -34,7 +34,7 @@ pub fn run(config: &TaskConfig) -> Result<()> {
             continue;
         };
         info!("find: {}", path.to_string_lossy());
-        accept_move(&repo_dir, &path, &name, &tag)?;
+        accept_move(config.dry_run, &repo_dir, &path, &name, &tag)?;
     }
 
     info!("scan end: {}", inbox_dir.to_string_lossy());
@@ -42,27 +42,37 @@ pub fn run(config: &TaskConfig) -> Result<()> {
     Ok(())
 }
 
-fn accept_move(repo_dir: &Path, src: &Path, name: &str, tag: &str) -> Result<()> {
+fn accept_move(dry_run: bool, repo_dir: &Path, src: &Path, name: &str, tag: &str) -> Result<()> {
     // dstdir = repo/tag/
     let dir = repo_dir.join(tag);
-    std::fs::create_dir_all(&dir)
-        .with_context(|| format!("mkdir failed: {}", dir.to_string_lossy()))?;
     // dstfile = repo/tag/filename
     let dst = dir.join(name);
+
+    info!("mkdir: {}", dir.to_string_lossy());
+    if !dry_run {
+        std::fs::create_dir_all(&dir)
+            .with_context(|| format!("mkdir failed: {}", dir.to_string_lossy()))?;
+    } else {
+        info!("(dry run)");
+    }
 
     info!(
         "move: {} => {}",
         src.to_string_lossy(),
         dst.to_string_lossy()
     );
-    // NOTE: it would be better to check if kind() is ErrorKind::CrossesDevices
-    // after stabilized
-    if let Err(err) = std::fs::rename(src, &dst) {
-        warn!("{err:#}");
-        warn!("rename failed, try copy-and-remove");
+    if !dry_run {
+        // NOTE: it would be better to check if kind() is ErrorKind::CrossesDevices
+        // after stabilized
+        if let Err(err) = std::fs::rename(src, &dst) {
+            warn!("{err:#}");
+            warn!("rename failed, try copy-and-remove");
 
-        std::fs::copy(src, &dst)?;
-        std::fs::remove_file(src)?;
+            std::fs::copy(src, &dst)?;
+            std::fs::remove_file(src)?;
+        }
+    } else {
+        info!("(dry run)");
     }
 
     Ok(())
