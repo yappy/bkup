@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{fs::Permissions, os::unix::fs::PermissionsExt, path::PathBuf};
 
 use anyhow::Result;
 use log::info;
@@ -48,10 +48,18 @@ pub fn watch(config: &TaskConfig) -> Result<()> {
 fn prepair(config: &TaskConfig) -> Result<()> {
     info!("mkdir: {}", config.inbox_dir.to_string_lossy());
     std::fs::create_dir_all(&config.inbox_dir)?;
+    info!("chmod 770: {}", config.inbox_dir.to_string_lossy());
+    std::fs::set_permissions(&config.inbox_dir, Permissions::from_mode(0o770))?;
+
     info!("mkdir: {}", config.repo_dir.to_string_lossy());
     std::fs::create_dir_all(&config.repo_dir)?;
+    info!("chmod 700: {}", config.repo_dir.to_string_lossy());
+    std::fs::set_permissions(&config.repo_dir, Permissions::from_mode(0o700))?;
+
     info!("mkdir: {}", config.sync_dir.to_string_lossy());
     std::fs::create_dir_all(&config.sync_dir)?;
+    info!("chmod 700: {}", config.sync_dir.to_string_lossy());
+    std::fs::set_permissions(&config.sync_dir, Permissions::from_mode(0o700))?;
 
     Ok(())
 }
