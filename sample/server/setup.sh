@@ -5,7 +5,7 @@ ELF=${SELF_DIR}/../../server/target/release/bkupserver
 CONFIG=${SELF_DIR}/config.toml
 
 set -x
-${ELF} --gen-config ${CONFIG}
+${ELF} --gen-config "${CONFIG}"
 set +x
 
-echo Open and edit: ${CONFIG}
+echo Open and edit: "${CONFIG}"

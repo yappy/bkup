@@ -5,5 +5,5 @@ ELF=${SELF_DIR}/../../server/target/release/bkupserver
 CONFIG=${SELF_DIR}/config.toml
 
 set -x
-${ELF} --config-file ${CONFIG}
+${ELF} --config-file "${CONFIG}"
 set +x
