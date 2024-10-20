@@ -74,7 +74,7 @@ mod tests {
 
         for i in 0..TOTAL {
             let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
-            std::fs::write(&path, &[])?;
+            std::fs::write(&path, [])?;
         }
 
         let config = TaskConfig {
@@ -111,7 +111,7 @@ mod tests {
 
         for i in 0..TOTAL {
             let path = subdir.join(format!("{TAG}-202401{i:0>2}.zip"));
-            std::fs::write(&path, &[0; FILE_SIZE as usize])?;
+            std::fs::write(&path, [0; FILE_SIZE as usize])?;
         }
 
         let config = TaskConfig {

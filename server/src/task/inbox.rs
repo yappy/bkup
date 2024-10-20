@@ -53,12 +53,12 @@ fn accept_move(repo_dir: &Path, src: &Path, name: &str, tag: &str) -> Result<()>
     info!("move: {} => {}", src.to_string_lossy(), dst.to_string_lossy());
     // NOTE: it would be better to check if kind() is ErrorKind::CrossesDevices
     // after stabilized
-    if let Err(err) = std::fs::rename(&src, &dst) {
+    if let Err(err) = std::fs::rename(src, &dst) {
         warn!("{err:#}");
         warn!("rename failed, try copy-and-remove");
 
-        std::fs::copy(&src, &dst)?;
-        std::fs::remove_file(&src)?;
+        std::fs::copy(src, &dst)?;
+        std::fs::remove_file(src)?;
     }
 
     Ok(())
