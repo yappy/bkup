@@ -23,6 +23,19 @@ struct Args {
     #[arg(long, value_name = "FILE", default_value_t = String::from("bkupsv.log"))]
     log_file: String,
 
+    /// Enable all the tasks
+    #[arg(long, short)]
+    task_all: bool,
+    /// Enable repository clean task
+    #[arg(long)]
+    task_repo: bool,
+    /// Enable inbox > repository move task
+    #[arg(long)]
+    task_inbox: bool,
+    /// Enable sync with cloud storage task
+    #[arg(long)]
+    task_sync: bool,
+
     /// Inbox directory path
     #[arg(long, value_name = "DIR", default_value_t = String::from("/tmp/inbox"))]
     inbox_dir: String,
@@ -33,10 +46,10 @@ struct Args {
     #[arg(long, value_name = "DIR", default_value_t = String::from("/tmp/sync"))]
     sync_dir: String,
 
-    /// repo: condition to keep archive files (0 to disable)
+    /// repo-task: condition to keep archive files (0 to disable)
     #[arg(long, value_name = "COUNT", default_value_t = 0)]
     keep_count: u32,
-    /// repo: condition to keep archive files (0 to disable)
+    /// repo-task: condition to keep archive files (0 to disable)
     #[arg(long, value_name = "SIZE", default_value_t = String::from("0"))]
     keep_size: String,
 
@@ -112,9 +125,9 @@ fn run_internal(mut args: Args) -> Result<()> {
     let config = TaskConfig {
         dry_run: args.dry_run,
 
-        enable_inbox: true,
-        enable_repo: true,
-        enable_sync: true,
+        enable_repo: args.task_all || args.task_repo,
+        enable_inbox: args.task_all || args.task_inbox,
+        enable_sync: args.task_all || args.task_sync,
 
         inbox_dir: args.inbox_dir.into(),
         repo_dir: args.repo_dir.into(),
