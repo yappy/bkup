@@ -8,7 +8,11 @@ const RCLONE_CMD: &str = "rclone";
 const RCLONE_HINT: &str = "[HINT] Download rclone and install: https://rclone.org/downloads/";
 
 pub fn run(_config: &TaskConfig) -> Result<()> {
+    info!("[sync] start");
+
     check_rclone()?;
+
+    info!("[sync] end");
 
     Ok(())
 }

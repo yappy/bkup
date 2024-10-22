@@ -10,7 +10,8 @@ pub fn run(config: &TaskConfig) -> Result<()> {
     let inbox_dir = std::path::absolute(&config.inbox_dir)?;
     let repo_dir = std::path::absolute(&config.repo_dir)?;
 
-    info!("scan start: {}", inbox_dir.to_string_lossy());
+    info!("[inbox] scan start: {}", inbox_dir.to_string_lossy());
+
     let rd = inbox_dir
         .read_dir()
         .with_context(|| format!("cannot read directory: {}", inbox_dir.to_string_lossy()))?;
@@ -37,7 +38,7 @@ pub fn run(config: &TaskConfig) -> Result<()> {
         accept_move(config.dry_run, &repo_dir, &path, &name, &tag)?;
     }
 
-    info!("scan end: {}", inbox_dir.to_string_lossy());
+    info!("[inbox] scan end: {}", inbox_dir.to_string_lossy());
 
     Ok(())
 }
