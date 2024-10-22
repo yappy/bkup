@@ -1,7 +1,7 @@
 use std::{fs::Permissions, os::unix::fs::PermissionsExt, path::PathBuf};
 
 use anyhow::Result;
-use log::info;
+use log::{info, warn};
 
 mod inbox;
 mod repo;
@@ -27,14 +27,23 @@ pub struct TaskConfig {
 pub fn run(config: &TaskConfig) -> Result<()> {
     prepair(config)?;
 
+    let mut any = false;
     if config.enable_repo {
+        any = true;
         repo::run(config)?;
     }
     if config.enable_inbox {
+        any = true;
         inbox::run(config)?;
     }
     if config.enable_sync {
+        any = true;
         sync::run(config)?;
+    }
+
+    if !any {
+        warn!("No tasks were executed");
+        warn!("Enable --task-* option");
     }
 
     Ok(())
