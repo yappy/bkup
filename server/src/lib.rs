@@ -156,6 +156,10 @@ fn run_internal(mut args: Args) -> Result<()> {
     } else {
         info!("log file: disabled");
     };
+    info!("version info:");
+    for line in version::version_vec() {
+        info!("{line}");
+    }
 
     let toml = toml::to_string_pretty(&args)?;
     info!("arguments:\n{toml}");

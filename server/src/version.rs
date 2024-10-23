@@ -17,16 +17,22 @@ pub fn build_profile() -> &'static str {
     }
 }
 
+pub fn version_vec() -> &'static [String] {
+    static VERSION_INFO: LazyLock<Vec<String>> = LazyLock::new(|| {
+        vec![
+            env!("CARGO_PKG_VERSION").to_string(),
+            format!("{GIT_BRANCH} {GIT_DESCRIBE} {GIT_DATE}"),
+            format!("Build: {}", build_profile()),
+        ]
+    });
+
+    &VERSION_INFO
+}
+
 #[rustfmt::skip]
 pub fn version() -> &'static str {
     static VERSION_INFO: LazyLock<String> = LazyLock::new(|| {
-        let cv = env!("CARGO_PKG_VERSION");
-        let prof = build_profile();
-
-        format!("{cv}
-{GIT_BRANCH} {GIT_DESCRIBE} {GIT_DATE}
-Build: {prof}"
-        )
+        version_vec().join("\n")
     });
 
     &VERSION_INFO
