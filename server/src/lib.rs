@@ -1,6 +1,6 @@
 use anyhow::Result;
 use chrono::{DateTime, Local, SecondsFormat};
-use clap::Parser;
+use clap::{error::ErrorKind, Parser};
 use fern::colors::{Color, ColoredLevelConfig};
 use log::{error, info, LevelFilter};
 use serde::{Deserialize, Serialize};
@@ -8,6 +8,7 @@ use task::TaskConfig;
 
 mod fssys;
 mod task;
+mod version;
 
 #[cfg(debug_assertions)]
 const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Trace;
@@ -16,7 +17,9 @@ const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Info;
 
 /// Backup files maintenance daemon
 #[derive(Debug, Parser, Serialize, Deserialize)]
-#[command(author, version, about, long_about = None)]
+#[command(author,
+    long_version = version::version(),
+    about, long_about = None)]
 struct Args {
     #[arg(long, value_name = "LEVEL", default_value_t = LOG_LEVEL_DEFAULT)]
     log_level: LevelFilter,
@@ -70,18 +73,53 @@ struct Args {
 
 /// Use system argv.
 pub fn run() -> Result<()> {
-    let args = Args::try_parse()?;
+    let args = help_version_filter(Args::try_parse())?;
 
-    run_internal(args)
+    if let Some(args) = args {
+        run_internal(args)
+    } else {
+        Ok(())
+    }
 }
 
 /// Use &str list. (argv[0] is automatically added)
 pub fn run_args(argv1: &[&str]) -> Result<()> {
     let argv0 = &[env!("CARGO_PKG_NAME")];
-    let argv = argv0.iter().chain(argv1);
-    let args = Args::try_parse_from(argv)?;
+    let argv: std::iter::Chain<std::slice::Iter<'_, &str>, std::slice::Iter<'_, &str>> =
+        argv0.iter().chain(argv1);
+    let args = help_version_filter(Args::try_parse_from(argv))?;
 
-    run_internal(args)
+    if let Some(args) = args {
+        run_internal(args)
+    } else {
+        Ok(())
+    }
+}
+
+/// Make clap Display* error Ok(None). (and print Display* error message)
+///
+/// Ok(Some(args)): parse ok
+/// Ok(None): parse ok but should exit (print help/version)
+/// Err: parse error
+fn help_version_filter(
+    parse_res: core::result::Result<Args, clap::error::Error>,
+) -> core::result::Result<Option<Args>, clap::error::Error> {
+    match parse_res {
+        Ok(args) => Ok(Some(args)),
+        Err(err) => {
+            if matches!(
+                err.kind(),
+                ErrorKind::DisplayHelp
+                    | ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
+                    | ErrorKind::DisplayVersion
+            ) {
+                print!("{err:#}");
+                Ok(None)
+            } else {
+                Err(err)
+            }
+        }
+    }
 }
 
 /// Parse args and call main routines.
@@ -224,13 +262,16 @@ mod tests {
 
     #[test]
     fn run_help() -> Result<()> {
-        let err = run_args(&["-h"]).unwrap_err();
-        let err: clap::Error = err.downcast()?;
-        assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+        run_args(&["-h"])?;
+        run_args(&["--help"])?;
 
-        let err = run_args(&["--help"]).unwrap_err();
-        let err: clap::Error = err.downcast()?;
-        assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+        Ok(())
+    }
+
+    #[test]
+    fn run_version() -> Result<()> {
+        run_args(&["-V"])?;
+        run_args(&["--version"])?;
 
         Ok(())
     }
