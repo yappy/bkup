@@ -5,6 +5,7 @@ use log::{info, warn};
 
 mod inbox;
 mod repo;
+mod status;
 mod sync;
 mod watch;
 
@@ -26,6 +27,8 @@ pub struct TaskConfig {
 
 pub fn run(config: &TaskConfig) -> Result<()> {
     prepair(config)?;
+
+    status::run(config)?;
 
     let mut any = false;
     if config.enable_repo {
