@@ -18,7 +18,7 @@ REMOTE=shanghai:/mnt/bkupinbox
 ARCHIVE_DIR=${DST_DIR}
 LOG_DIR=${DST_DIR}
 LOG_FILE=${LOG_DIR}/backup.log
-SELF_DIR=$(realpath "$(dirname "$0")")
+SELF_DIR=$(dirname "$(realpath "$0")")
 SCRIPT_DIR=${SELF_DIR}/../client
 
 
