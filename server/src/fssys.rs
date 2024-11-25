@@ -1,7 +1,7 @@
 // TODO: remove later
 #![allow(dead_code)]
 
-use anyhow::{anyhow, bail, ensure, Context, Result};
+use anyhow::{bail, ensure, Context, Result};
 use log::{info, warn};
 use regex::Regex;
 use std::{
@@ -158,8 +158,8 @@ pub fn parse_size(s: &str) -> Result<u64> {
             '0'..='9' => {
                 let t = c as u64 - '0' as u64;
                 let mut tmp = cur.unwrap_or(0);
-                tmp = tmp.checked_mul(10).ok_or_else(|| anyhow!("overflow"))?;
-                tmp = tmp.checked_add(t).ok_or_else(|| anyhow!("overflow"))?;
+                tmp = tmp.checked_mul(10).context("overflow")?;
+                tmp = tmp.checked_add(t).context("overflow")?;
                 cur = Some(tmp);
             }
             'k' | 'K' | 'm' | 'M' | 'g' | 'G' | 't' | 'T' => {
@@ -170,9 +170,9 @@ pub fn parse_size(s: &str) -> Result<u64> {
                     't' | 'T' => 1u64 << 40,
                     _ => panic!(),
                 };
-                let mut tmp = cur.ok_or_else(|| anyhow!("parse size failed: {s}"))?;
-                tmp = tmp.checked_mul(factor).ok_or_else(|| anyhow!("overflow"))?;
-                n = n.checked_add(tmp).ok_or_else(|| anyhow!("overflow"))?;
+                let mut tmp = cur.context("parse size failed: {s}")?;
+                tmp = tmp.checked_mul(factor).context("overflow")?;
+                n = n.checked_add(tmp).context("overflow")?;
                 cur = None;
             }
             _ => {
@@ -180,9 +180,7 @@ pub fn parse_size(s: &str) -> Result<u64> {
             }
         }
     }
-    n = n
-        .checked_add(cur.unwrap_or(0))
-        .ok_or_else(|| anyhow!("overflow"))?;
+    n = n.checked_add(cur.unwrap_or(0)).context("overflow")?;
 
     Ok(n)
 }
