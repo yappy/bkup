@@ -23,6 +23,8 @@ pub struct TaskConfig {
 
     pub keep_count: u32,
     pub keep_size: u64,
+
+    pub check_rclone_update: bool,
 }
 
 pub fn run(config: &TaskConfig) -> Result<()> {

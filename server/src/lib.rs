@@ -56,12 +56,16 @@ struct Args {
     #[arg(long, value_name = "SIZE", default_value_t = String::from("0"))]
     keep_size: String,
 
-    /// Watch mode
-    #[arg(long, short)]
-    watch: bool,
+    /// sync-task: check rclone update (apt system only)
+    #[arg(long)]
+    check_rclone_update: bool,
+
     /// Dry-run
     #[arg(long, short = 'n')]
     dry_run: bool,
+    /// Watch mode
+    #[arg(long, short)]
+    watch: bool,
 
     /// Read parameters from TOML file (other command line parameters will be ignored)
     #[arg(long, short, value_name = "FILE", default_value_t = String::new())]
@@ -177,6 +181,8 @@ fn run_internal(mut args: Args) -> Result<()> {
 
         keep_count: args.keep_count,
         keep_size: fssys::parse_size(&args.keep_size)?,
+
+        check_rclone_update: args.check_rclone_update,
     };
     let cont = || -> Result<()> {
         if args.watch {
