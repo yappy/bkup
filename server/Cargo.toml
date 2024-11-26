@@ -8,7 +8,7 @@ anyhow = "1.0.93"
 chrono = "0.4.38"
 clap = { version = "4.5.21", features = ["derive"] }
 fern = { version = "0.7.0", features = ["colored"] }
-libc = "0.2.164"
+libc = "0.2.165"
 log = { version = "0.4.22", features = ["serde"] }
 notify = "7.0.0"
 number_prefix = "0.4.0"
