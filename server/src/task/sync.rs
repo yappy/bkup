@@ -80,8 +80,8 @@ fn check_rclone(check_update: bool) -> Result<()> {
 
 fn check_rclone_update(ver: &str) -> Result<()> {
     let os = match std::env::consts::OS {
-        "linux" =>"linux",
-        _=> bail!("This check is Linux only"),
+        "linux" => "linux",
+        _ => bail!("This check is Linux only"),
     };
     let arch = match std::env::consts::ARCH {
         "x86_64" => "amd64",
