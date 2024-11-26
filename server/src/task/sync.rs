@@ -1,5 +1,4 @@
-use anyhow::{ensure, Context, Result};
-use const_format::formatcp;
+use anyhow::{bail, ensure, Context, Result};
 use log::{error, info, warn};
 use std::{mem, process::Command};
 use tempfile::TempDir;
@@ -80,16 +79,28 @@ fn check_rclone(check_update: bool) -> Result<()> {
 }
 
 fn check_rclone_update(ver: &str) -> Result<()> {
-    const DEB_FILE: &str = "rclone-current-linux-amd64.deb";
-    const URL: &str = formatcp!("https://downloads.rclone.org/{}", DEB_FILE);
+    let os = match std::env::consts::OS {
+        "linux" =>"linux",
+        _=> bail!("This check is Linux only"),
+    };
+    let arch = match std::env::consts::ARCH {
+        "x86_64" => "amd64",
+        "x86" => "386",
+        "aarch64" => "arm64",
+        "arm" => "arm-v7",
+        _ => bail!(""),
+    };
+
+    let deb_file = format!("rclone-current-{os}-{arch}.deb");
+    let url = format!("https://downloads.rclone.org/{}", deb_file);
 
     let dir = TempDir::new()?;
     let dir_path = dir.path();
-    let file_path = dir_path.join(DEB_FILE);
-    info!("Download: {URL}");
+    let file_path = dir_path.join(deb_file);
+    info!("Download: {url}");
     info!("To: {}", dir_path.to_string_lossy());
 
-    execute(Command::new("wget").args(["-q", "-P", dir_path.to_str().unwrap(), URL]))?;
+    execute(Command::new("wget").args(["-q", "-P", dir_path.to_str().unwrap(), &url]))?;
     let (stdout, _) = execute(Command::new("dpkg-deb").args(["-W", file_path.to_str().unwrap()]))?;
 
     let mut it = stdout.split_whitespace();
@@ -99,7 +110,10 @@ fn check_rclone_update(ver: &str) -> Result<()> {
 
     if ver != pkg_ver {
         warn!("Newer package is found: {pkg_ver} (current: {ver})");
-        warn!("Install command: apt install {}", file_path.to_string_lossy());
+        warn!(
+            "Install command: apt install {}",
+            file_path.to_string_lossy()
+        );
         // Don't remove dir
         mem::forget(dir);
     } else {
