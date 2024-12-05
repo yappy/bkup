@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, ensure, Context, Result};
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -7,26 +7,47 @@ use std::{
 };
 use tempfile::TempDir;
 
-use crate::fssys;
-
 use super::TaskConfig;
+use crate::fssys;
 
 const RCLONE_CMD: &str = "rclone";
 const RCLONE_HINT: &str = "[HINT] Download rclone and install: https://rclone.org/downloads/";
 
 /// rclone about --json remote:
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 struct StorageUsage {
     total: u64,
     used: u64,
     free: u64,
 }
 
+/// rclone about --json remote:
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[serde(rename_all = "PascalCase")]
+struct FileEntry {
+    path: String,
+    name: String,
+    size: u64,
+    // MimeType
+    // ModTime
+    is_dir: bool,
+    #[serde(rename = "ID")]
+    id: String,
+}
+
 pub fn run(config: &TaskConfig) -> Result<()> {
     info!("[sync] start");
 
     check_rclone(config.check_rclone_update)?;
-    get_storage_usage(&config.remote)?;
+    if !config.remote.is_empty() {
+        get_storage_usage(&config.remote)?;
+        let files = ls(&config.remote)?;
+        let dirc = files.iter().filter(|f| f.is_dir).count();
+        let filec = files.len() - dirc;
+        info!("Dirs: {dirc}, Files: {filec}");
+    } else {
+        warn!("--remote is not specified");
+    }
 
     info!("[sync] end");
 
@@ -148,11 +169,7 @@ fn check_rclone_update(ver: &str) -> Result<()> {
 }
 
 fn get_storage_usage(remote: &str) -> Result<()> {
-    if remote.is_empty() {
-        info!("remote is empty");
-        info!("Do not get remote storage status");
-        return Ok(());
-    }
+    ensure!(!remote.is_empty(), "--remote required");
 
     let (stdout, _) = execute(Command::new("rclone").args(["about", "--json", remote]))?;
     let stat: StorageUsage = serde_json::from_str(&stdout)?;
@@ -169,5 +186,22 @@ fn get_storage_usage(remote: &str) -> Result<()> {
         total.1,
         free_rate * 100.0
     );
+
     Ok(())
+}
+
+fn ls(remote: &str) -> Result<Vec<FileEntry>> {
+    ensure!(!remote.is_empty(), "--remote required");
+
+    let (stdout, _) = execute(Command::new("rclone").args([
+        "lsjson",
+        "-R",
+        "--fast-list",
+        "--no-mimetype",
+        "--no-modtime",
+        remote,
+    ]))?;
+    let result = serde_json::from_str(&stdout)?;
+
+    Ok(result)
 }
