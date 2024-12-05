@@ -22,7 +22,7 @@ struct StorageUsage {
 }
 
 /// rclone about --json remote:
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "PascalCase")]
 struct FileEntry {
     path: String,
@@ -201,7 +201,8 @@ fn ls(remote: &str) -> Result<Vec<FileEntry>> {
         "--no-modtime",
         remote,
     ]))?;
-    let result = serde_json::from_str(&stdout)?;
+    let mut result: Vec<FileEntry> = serde_json::from_str(&stdout)?;
+    result.sort();
 
     Ok(result)
 }
