@@ -3,6 +3,7 @@
 
 use anyhow::{bail, ensure, Context, Result};
 use log::{info, warn};
+use number_prefix::NumberPrefix;
 use regex::Regex;
 use std::{
     collections::BTreeMap,
@@ -183,6 +184,13 @@ pub fn parse_size(s: &str) -> Result<u64> {
     n = n.checked_add(cur.unwrap_or(0)).context("overflow")?;
 
     Ok(n)
+}
+
+pub fn auto_scale(size: u64) -> (f64, &'static str) {
+    match NumberPrefix::binary(size as f64) {
+        NumberPrefix::Standalone(n) => (n, ""),
+        NumberPrefix::Prefixed(prefix, n) => (n, prefix.symbol()),
+    }
 }
 
 /// Get (filename, tag, date) parts from file name.

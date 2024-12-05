@@ -1,24 +1,72 @@
-use anyhow::{bail, ensure, Context, Result};
+use anyhow::{bail, Context, Result};
 use log::{error, info, warn};
-use std::{mem, process::Command};
+use serde::{Deserialize, Serialize};
+use std::{
+    mem,
+    process::{Command, Output},
+};
 use tempfile::TempDir;
+
+use crate::fssys;
 
 use super::TaskConfig;
 
 const RCLONE_CMD: &str = "rclone";
 const RCLONE_HINT: &str = "[HINT] Download rclone and install: https://rclone.org/downloads/";
 
+/// rclone about --json remote:
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct StorageUsage {
+    total: u64,
+    used: u64,
+    free: u64,
+}
+
 pub fn run(config: &TaskConfig) -> Result<()> {
     info!("[sync] start");
 
     check_rclone(config.check_rclone_update)?;
+    get_storage_usage(&config.remote)?;
 
     info!("[sync] end");
 
     Ok(())
 }
 
+/// Return (stdout, stderr) if succeeded.
+/// Return error if exit status is not 0.
 fn execute(command: &mut Command) -> Result<(String, String)> {
+    let program = command.get_program().to_string_lossy().to_string();
+    let output = execute_internal(command)?;
+
+    match output.status.code() {
+        Some(code) => {
+            if output.status.success() {
+                info!("{program} exited with status: {code}");
+            } else {
+                error!("{program} exited with status: {code}");
+            }
+        }
+        None => error!("{program} terminated by signal"),
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    if !output.status.success() {
+        if !stdout.is_empty() {
+            info!("stdout\n{}", stdout);
+        }
+        if !stderr.is_empty() {
+            info!("stderr\n{}", stderr);
+        }
+        bail!("{program} exited with error status");
+    }
+
+    Ok((stdout.to_string(), stderr.to_string()))
+}
+
+fn execute_internal(command: &mut Command) -> Result<Output> {
     let program = command.get_program().to_string_lossy().to_string();
 
     let mut cmdline = String::new();
@@ -33,31 +81,7 @@ fn execute(command: &mut Command) -> Result<(String, String)> {
         .output()
         .with_context(|| format!("Cannot execute {program}"))?;
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    if !stdout.is_empty() {
-        info!("stdout\n{}", stdout);
-    }
-    if !stderr.is_empty() {
-        info!("stderr\n{}", stderr);
-    }
-
-    match output.status.code() {
-        Some(code) => {
-            if output.status.success() {
-                info!("{program} exited with status: {code}");
-            } else {
-                error!("{program} exited with status: {code}");
-            }
-        }
-        None => error!("{program} terminated by signal"),
-    }
-    ensure!(
-        output.status.success(),
-        "{program} exited with error status"
-    );
-
-    Ok((stdout.to_string(), stderr.to_string()))
+    Ok(output)
 }
 
 fn check_rclone(check_update: bool) -> Result<()> {
@@ -120,5 +144,30 @@ fn check_rclone_update(ver: &str) -> Result<()> {
         info!("No update: {pkg_ver}");
     }
 
+    Ok(())
+}
+
+fn get_storage_usage(remote: &str) -> Result<()> {
+    if remote.is_empty() {
+        info!("remote is empty");
+        info!("Do not get remote storage status");
+        return Ok(());
+    }
+
+    let (stdout, _) = execute(Command::new("rclone").args(["about", "--json", remote]))?;
+    let stat: StorageUsage = serde_json::from_str(&stdout)?;
+
+    let total = fssys::auto_scale(stat.total);
+    let free = fssys::auto_scale(stat.free);
+    let free_rate = stat.free as f64 / stat.total as f64;
+
+    info!(
+        "{:4.1} {}B / {:4.1} {}B ({:.1}%) free",
+        free.0,
+        free.1,
+        total.0,
+        total.1,
+        free_rate * 100.0
+    );
     Ok(())
 }

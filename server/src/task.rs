@@ -25,6 +25,8 @@ pub struct TaskConfig {
     pub keep_size: u64,
 
     pub check_rclone_update: bool,
+    /// empty or "remote:"
+    pub remote: String,
 }
 
 pub fn run(config: &TaskConfig) -> Result<()> {

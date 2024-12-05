@@ -2,7 +2,8 @@ use std::{ffi::CString, mem::MaybeUninit, os::unix::ffi::OsStrExt, path::Path};
 
 use anyhow::Result;
 use log::info;
-use number_prefix::NumberPrefix;
+
+use crate::fssys;
 
 use super::TaskConfig;
 
@@ -45,12 +46,14 @@ fn status_sync(path: &Path) -> Result<()> {
 fn report_disk_usage(path: &Path) -> Result<()> {
     let stat = statvfs(path)?;
 
-    let total = auto_scale(stat.f_blocks * stat.f_frsize);
-    let avail = auto_scale(stat.f_bavail * stat.f_frsize);
-    let avail_rate = avail.0 as f64 / total.0 as f64;
+    let total = stat.f_blocks * stat.f_frsize;
+    let avail = stat.f_bavail * stat.f_frsize;
+    let avail_rate = avail as f64 / total as f64;
+    let total = fssys::auto_scale(total);
+    let avail = fssys::auto_scale(avail);
 
     info!(
-        "{:4.1} {}B / {:4.1} {}B free ({:.1}%)",
+        "{:4.1} {}B / {:4.1} {}B ({:.1}%) free",
         avail.0,
         avail.1,
         total.0,
@@ -77,13 +80,6 @@ fn statvfs(path: impl AsRef<Path>) -> Result<libc::statvfs> {
     };
 
     Ok(statvfs?)
-}
-
-fn auto_scale(size: u64) -> (f64, String) {
-    match NumberPrefix::binary(size as f64) {
-        NumberPrefix::Standalone(n) => (n, "".to_string()),
-        NumberPrefix::Prefixed(prefix, n) => (n, prefix.to_string()),
-    }
 }
 
 #[cfg(test)]

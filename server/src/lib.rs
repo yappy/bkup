@@ -59,6 +59,9 @@ struct Args {
     /// sync-task: check rclone update (apt system only)
     #[arg(long)]
     check_rclone_update: bool,
+    /// sync-task: (local path if empty)
+    #[arg(long, default_value_t = String::new())]
+    remote: String,
 
     /// Dry-run
     #[arg(long, short = 'n')]
@@ -168,6 +171,11 @@ fn run_internal(mut args: Args) -> Result<()> {
     let toml = toml::to_string_pretty(&args)?;
     info!("arguments:\n{toml}");
 
+    let remote = if !args.remote.is_empty() {
+        format!("{}:", args.remote)
+    } else {
+        String::new()
+    };
     let config = TaskConfig {
         dry_run: args.dry_run,
 
@@ -183,6 +191,7 @@ fn run_internal(mut args: Args) -> Result<()> {
         keep_size: fssys::parse_size(&args.keep_size)?,
 
         check_rclone_update: args.check_rclone_update,
+        remote,
     };
     let cont = || -> Result<()> {
         if args.watch {
