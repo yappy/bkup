@@ -15,7 +15,7 @@ const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Trace;
 #[cfg(not(debug_assertions))]
 const LOG_LEVEL_DEFAULT: LevelFilter = LevelFilter::Info;
 
-/// Backup files maintenance daemon
+/// Backup files maintenance tool
 #[derive(Debug, Parser, Serialize, Deserialize)]
 #[command(author,
     long_version = version::version(),

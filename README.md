@@ -152,6 +152,47 @@ WSL からの `.exe` 呼び出しで十分な場合は不要。
 cargo build --release
 ```
 
+### server - Run
+
+```sh
+cargo run --release -- --help
+$ cargo run --release -- --help
+
+Backup files maintenance tool
+
+Usage: bkupserver [OPTIONS]
+
+Options:
+      --log-level <LEVEL>    [default: INFO]
+      --log-file <FILE>      [default: bkupsv.log]
+  -t, --task-all             Enable all the tasks
+      --task-repo            Enable repository clean task
+      --task-inbox           Enable inbox > repository move task
+      --task-sync            Enable sync with cloud storage task
+      --inbox-dir <DIR>      Inbox directory path [default: /tmp/inbox]
+      --repo-dir <DIR>       Repository directory path [default: /tmp/repo]
+      --sync-dir <DIR>       Cloud sync directory path [default: /tmp/sync]
+  -c, --config-file <FILE>   Read parameters from TOML file (other command line parameters will be ignored) [default: ]
+  -g, --gen-config <FILE>    Generate a config file template and exit [default: ]
+```
+
+* 起動パラメータ関連
+  * `--gen-config`
+    * デフォルト設定からなるコンフィグファイルを出力します。
+  * `--config-file`
+    * コマンドラインの代わりにコンフィグファイルに書かれた設定を使用します。
+* ログ関連
+  * `--log-level`
+    * TRACE, DEBUG, INFO, WARN, ERROR
+  * `--log-file`
+* ディレクトリ
+  * `--inbox-dir`
+    * クライアントが rsync 等でファイルを置く想定のディレクトリです。
+  * `--repo-dir`
+    * 管理中のアーカイブファイルが置かれるディレクトリです。
+  * `--sync-dir`
+    * クラウドストレージと同期するためのディレクトリです。
+
 ### server - Format and Lint
 
 ```sh
