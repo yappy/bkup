@@ -40,24 +40,38 @@ Backup manager and tools
 ### bkup.py
 
 クライアントツール群のフロントエンド。
-WSL 内から Windows のファイルを圧縮のために読み取るのはパフォーマンス上の観点から
-非推奨なので、後述の `runaswin.py` との併用を推奨します。
+
+```sh
+$ ./bkup.py
+./bkup.py SUBCMD [args...]
+Subcommands
+* sync
+    Make a backup copy of directory
+* clean
+    Clean old archive files
+* archive
+    Compress directory and make a archive file
+* upload
+    Copy the latest archive file to a remote host by rsync
+```
 
 #### sync
 
+```sh
+$ ./bkup.py sync -h
+usage: sync [-h] [--src SRC [SRC ...]] --dst DST [--exclude EXCLUDE] [--exclude-file [EXCLUDE_FILE ...]]
+            [--exclude-dir [EXCLUDE_DIR ...]] [--dry-run] [--force]
+
+Make a copy of file tree (Linux: rsync, Windows: robocopy)
+```
+
 ディレクトリツリーのコピー (同期) を行います。
+SRC (複数) を DST (単独) 以下にコピーします。
+
 展開せずにすぐに使えるバックアップ、およびアーカイブ前にバックアップ対象を
-一か所に固める用。
-Unix / Windows で使用ツールを自動スイッチします。
+一か所に固めるためのコマンドです。
 
-Requirements:
-
-* Unix
-  * `rsync`
-    * e.g. `sudo apt install rsync`
-* Windows
-  * `Robocopy`
-    * 最初から入っているはず
+Unix / Windows / WSL で使用ツールを自動スイッチします。
 
 ##### rsync の注意
 
@@ -71,26 +85,46 @@ Requirements:
 
 #### archive
 
-ディレクトリ1つをユーザ/マシン名や日時の入ったいい感じの名前の圧縮ファイルに
+```sh
+$ ./bkup.py archive -h
+usage: archive [-h] --src SRC --dst DST [--dry-run]
+
+Archive and compress a directory (Linux: tar.bz2, Windows: 7z)
+```
+
+SRC ディレクトリ (1つ) をユーザ/マシン名や日時の入ったいい感じの名前の圧縮ファイルに
 アーカイブします。
 Unix / Windows で使用ツールを自動スイッチします。
 
-Requirements:
+#### clean
 
-* Unix
-  * `pbzip2`
-    * Parallel version of bzip2
-    * e.g. `sudo apt install pbzip2`
-* Windows
-  * `7z`
-    * e.g. `winget install 7zip`
+```sh
+$ ./bkup.py clean -h
+usage: clean [-h] --dst DST [--dry_run] [--keep-count KEEP_COUNT] [--keep-days KEEP_DAYS]
 
-可能ならば追加インストールなし、同じファイルフォーマットにしたかったが、
-熟考の結果こうなっています。
+Clean old archive files
+```
 
-* `tar` + `gz` or `bz2` or `xz` は owner, permission, symlink を格納でき
-  UNIX システムのバックアップに非常に適している。
-* ファイルサイズが大きいので並列化をかけないとコアと時間が大幅に損。
+archive で生成されたアーカイブファイルのうち、古いものを削除します。
+archive と同じ DST を指定してください。
+KEEP_COUNT と KEEP_DAYS の両方から外れたファイルが削除されます。
+
+#### upload
+
+```sh
+$ ./bkup.py upload -h
+usage: upload [-h] --src SRC --dst DST [--ssh SSH] [--dry-run]
+
+Copy the latest archive file to a remote host by rsync
+```
+
+archive で生成されたファイルの中で最も新しいものを rsync でリモートに転送します。
+
+SRC には archive で指定していた DST を指定してください。
+
+DST にはリモートディレクトリを rsync で使えるような形式で指定してください。
+`user@host:path/to/dir` のような形になります。
+ローカルのパスも指定可能です。
 
 ### runaswin.py
 
@@ -111,3 +145,34 @@ WSL からの `.exe` 呼び出しで十分な場合は不要。
 ## server
 
 [Tech Note](note/server.md)
+
+### server - Build
+
+```sh
+cargo build --release
+```
+
+### server - Format and Lint
+
+```sh
+cargo fmt --check
+cargo clippy
+```
+
+### server - Test
+
+```sh
+cargo test
+```
+
+## scripts
+
+実戦的な使用例。
+
+### scripts - Lint
+
+shellcheck
+
+```sh
+./scripts/lint.sh
+```

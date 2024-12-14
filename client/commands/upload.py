@@ -50,7 +50,7 @@ def upload(args: argparse.Namespace):
 def main(argv: list[str]):
     parser = argparse.ArgumentParser(
         prog=argv[0],
-        description="Archive and compress a directory (Linux: tar.bz2, Windows: 7z)",
+        description="Copy the latest archive file to a remote host by rsync",
     )
     parser.add_argument("--src", "-s", required=True, help="archive dir")
     parser.add_argument("--dst", "-d", required=True, help="rsync destination (user@host:dir)")

@@ -177,10 +177,6 @@ def main(argv: list[str]):
     parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
     parser.add_argument("--force", "-f", action="store_true", help="run without confirmation")
 
-    try:
-        args = parser.parse_args(argv[1:])
-    except BaseException:
-        parser.print_help()
-        raise
+    args = parser.parse_args(argv[1:])
 
     sync(args)
