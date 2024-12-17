@@ -107,6 +107,7 @@ def archive(args: argparse.Namespace):
         log.info(f"DST: {ar_dst}")
         archive_win_7z(src, ar_dst, args.dry_run)
     elif exe_from_wsl:
+        ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
         win_ar_dst = windst / ar_dst.name
         log.info(f"DST: {win_ar_dst}")
         archive_win_7z(winsrc, win_ar_dst, args.dry_run)
