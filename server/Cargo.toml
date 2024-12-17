@@ -7,7 +7,7 @@ edition = "2021"
 anyhow = "1.0.94"
 chrono = "0.4.39"
 clap = { version = "4.5.23", features = ["derive"] }
-fern = { version = "0.7.0", features = ["colored"] }
+fern = { version = "0.7.1", features = ["colored"] }
 libc = "0.2.168"
 log = { version = "0.4.22", features = ["serde"] }
 notify = "7.0.0"
