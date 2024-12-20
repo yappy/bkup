@@ -10,7 +10,7 @@ DST_DIR=/mnt/d/backup/wsl
 KEEP_COUNT=12
 KEEP_DAYS=365
 # Use ~/.ssh/config
-REMOTE=shanghai:/mnt/bkupinbox
+REMOTE=shanghai:/mnt/inbox
 # Disable upload by empty string
 # REMOTE=
 # !!! REPLACE HERE !!!
