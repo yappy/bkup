@@ -67,9 +67,10 @@ def robocopy_one(
 
     log.info(f"EXEC: {' '.join(cmd)}")
     proc = subprocess.run(cmd, check=False)
-    log.info(f"Robocopy returned: {proc.returncode}")
     if proc.returncode >= 8:
-        raise RuntimeError(f"Robocopy returned: {proc.returncode}")
+        log.warning(f"Robocopy returned: {proc.returncode}")
+    else:
+        log.info(f"Robocopy returned: {proc.returncode}")
 
 
 def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], dry_run: bool, force: bool):
