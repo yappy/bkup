@@ -1,4 +1,4 @@
-#!/bin/sh -xue
+#!/bin/bash -xue
 
 # Register sample_wsl.sh on Windows TaskScheduler.
 

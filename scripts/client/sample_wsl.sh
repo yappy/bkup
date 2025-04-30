@@ -1,4 +1,4 @@
-#!/bin/sh -u
+#!/bin/bash -u
 
 # Automatic backup script for WSL
 #
@@ -8,7 +8,7 @@
 # > wsl.exe --cd ~ --exec <./path/to/this.sh>
 
 # !!! REPLACE HERE !!!
-SRC_DIR=~
+SRC_DIRS=~
 DST_DIR=/mnt/d/backup/wsl
 KEEP_COUNT=12
 KEEP_DAYS=365
