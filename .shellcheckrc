@@ -1,0 +1,4 @@
+# shellcheck will look for the script's directory and its parent directories.
+
+external-sources=true
+source-path=SCRIPTDIR
