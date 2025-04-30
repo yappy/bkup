@@ -1,6 +1,7 @@
 # ignore *.sh other than samples
 /client/*.sh
 !/client/sample_*.sh
+!/client/main_*.sh
 *~
 *.toml
 *.log
