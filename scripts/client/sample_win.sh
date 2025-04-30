@@ -8,7 +8,7 @@
 # > wsl.exe --cd ~ --exec <./path/to/this.sh>
 
 # !!! REPLACE HERE !!!
-SRC_DIRS="/mnt/c/Users"
+SRC_DIRS=/mnt/c/Users
 DST_DIR=/mnt/d/backup/win
 KEEP_COUNT=12
 KEEP_DAYS=365
