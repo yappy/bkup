@@ -2,6 +2,7 @@ import logging
 import argparse
 import subprocess
 import platform
+import tempfile
 
 log = logging.getLogger(__name__)
 
@@ -52,6 +53,37 @@ def compare_version(v1: str, v2: str) -> int:
         return v1[2] - v2[2]
 
 
+def download_latest():
+    if platform.system() != "Linux":
+        return
+
+    arch = ""
+    match platform.machine():
+        case "x86_64" | "AMD64":
+            arch = "amd64"
+        case "armv7l":
+            arch = "arm-v7"
+        case "aarch64":
+            arch = "arm64"
+        case _ as machine:
+            raise RuntimeError(f"Unknown arch: {machine}")
+    FILE = f"rclone-current-linux-{arch}.deb"
+    URL = f"https://downloads.rclone.org/{FILE}"
+
+    tmpd = tempfile.TemporaryDirectory(delete=False, ignore_cleanup_errors=True)
+    try:
+        log.info(f"Downloading {URL} into {tmpd.name}")
+        subprocess.run(
+            ["wget", URL],
+            cwd=tmpd.name,
+            check=True, text=True, stdout=subprocess.PIPE, stderr=None)
+        log.info("Download OK!")
+        log.info(f"INSTALL CMD: dpkg -i {tmpd.name}/{FILE}")
+    except BaseException:
+        tmpd.cleanup()
+        raise
+
+
 def cloudsetup(args: argparse.Namespace):
     cur = get_current_version()
     if cur is not None:
@@ -64,7 +96,10 @@ def cloudsetup(args: argparse.Namespace):
 
     if cur is None or compare_version(cur, latest) >= 0:
         return
-    log.info("Install the latest rclone!")
+
+    log.warning("Install the latest rclone!")
+    log.warning("See: https://rclone.org/downloads/")
+    download_latest()
 
 
 def main(argv: list[str]):
