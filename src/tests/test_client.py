@@ -1,6 +1,6 @@
 import unittest
 import test.support
-from client import bkup
+from src import bkup
 import os
 import pathlib
 import tempfile

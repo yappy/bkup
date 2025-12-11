@@ -7,6 +7,10 @@ import subprocess
 _is_wsl: bool = None
 
 
+def format_cmd(cmd: list[str]) -> str:
+    return " ".join(map(lambda t: f'"{t}"', list))
+
+
 def is_wsl() -> bool:
     global _is_wsl
     if _is_wsl is not None:

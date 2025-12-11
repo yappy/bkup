@@ -1,7 +1,7 @@
 # No shebang: include only
 # shellcheck shell=bash
 
-# Automatic backup script for WSL
+# Automatic backup script for Windows
 # Create a separate script file and set required parameters,
 # then include this file by "." or "source".
 
@@ -15,23 +15,32 @@ echo "KEEP_DAYS : ${KEEP_DAYS}"
 echo "REMOTE:     ${REMOTE}"
 # !!! Required Variables !!!
 
-ARCHIVE_DIR=${DST_DIR}
+BACKUP_DIR=${DST_DIR}/backup
+ARCHIVE_DIR=${DST_DIR}/archive
 LOG_DIR=${DST_DIR}
 LOG_FILE=${LOG_DIR}/backup.log
 SELF_DIR=$(dirname "$(realpath "$0")")
-SCRIPT_DIR=${SELF_DIR}/../../client
-
+SCRIPT_DIR=${SELF_DIR}/../src
 
 mkdir -p "${LOG_DIR}"
 echo -------------------------------------------------------------------------------- | tee -a "${LOG_FILE}"
-echo START | tee -a "${LOG_FILE}"
-date -R    | tee -a "${LOG_FILE}"
+echo START  | tee -a "${LOG_FILE}"
+date -R     | tee -a "${LOG_FILE}"
 echo -------------------------------------------------------------------------------- | tee -a "${LOG_FILE}"
 
+# Robocopy may be failed due to access restriction or locked files
 # shellcheck disable=SC2086
 python3 "${SCRIPT_DIR}/bkup.py" \
-archive \
+sync \
 --src ${SRC_DIRS} \
+--dst "${BACKUP_DIR}" \
+--force \
+2>&1 \
+| tee -a "${LOG_FILE}"
+
+python3 "${SCRIPT_DIR}/bkup.py" \
+archive \
+--src "${BACKUP_DIR}" \
 --dst "${ARCHIVE_DIR}" \
 2>&1 \
 | tee -a "${LOG_FILE}"

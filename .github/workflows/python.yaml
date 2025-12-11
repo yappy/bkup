@@ -41,4 +41,4 @@ jobs:
 
     - name: Test
       run: |
-        python -m unittest discover -v client
+        python -m unittest discover -v src

@@ -1,8 +1,2 @@
-# Rust
-target/
-
 # Python
 __pycache__/
-
-# Personal settings
-/client/**/*.toml
