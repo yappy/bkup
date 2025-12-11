@@ -1,3 +1,3 @@
 #!/bin/sh -xue
 
-python3 -m unittest discover client
+python3 -m unittest discover src

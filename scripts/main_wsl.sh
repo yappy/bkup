@@ -19,7 +19,7 @@ ARCHIVE_DIR=${DST_DIR}
 LOG_DIR=${DST_DIR}
 LOG_FILE=${LOG_DIR}/backup.log
 SELF_DIR=$(dirname "$(realpath "$0")")
-SCRIPT_DIR=${SELF_DIR}/../../client
+SCRIPT_DIR=${SELF_DIR}/../src
 
 
 mkdir -p "${LOG_DIR}"

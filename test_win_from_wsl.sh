@@ -1,3 +1,3 @@
 #!/bin/sh -xue
 
-python3 ./client/runaswin.py -m unittest discover client
+python3 ./src/runaswin.py -m unittest discover src
