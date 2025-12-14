@@ -94,7 +94,7 @@ def cloudsetup(args: argparse.Namespace):
     latest = get_latest_version()
     log.info(f"Latest rclone: {latest}")
 
-    if cur is None or compare_version(cur, latest) >= 0:
+    if cur is not None and compare_version(cur, latest) >= 0:
         return
 
     log.warning("Install the latest rclone!")
