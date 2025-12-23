@@ -14,7 +14,8 @@ KEEP_COUNT=12
 KEEP_DAYS=365
 # Use ~/.ssh/config
 # Disable upload by empty string
-REMOTE=shanghai:/mnt/inbox
+REMOTE=
+# REMOTE=shanghai:/mnt/inbox
 # !!! REPLACE HERE !!!
 
 SELF_DIR=$(dirname "$(realpath "$0")")
