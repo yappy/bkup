@@ -63,7 +63,7 @@ def robocopy_one(
         ans = input()
         if ans != "y" and ans != "Y":
             log.info("Cancelled")
-            return
+            raise RuntimeError("Cancelled")
 
     log.info(f"EXEC: {' '.join(cmd)}")
     proc = subprocess.run(cmd, check=False)
@@ -106,7 +106,7 @@ def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], 
         ans = input()
         if ans != "y" and ans != "Y":
             log.info("Cancelled")
-            return
+            raise RuntimeError("Cancelled")
 
     log.info(f"EXEC: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
