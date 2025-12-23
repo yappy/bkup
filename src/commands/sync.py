@@ -73,7 +73,7 @@ def robocopy_one(
         log.info(f"Robocopy returned: {proc.returncode}")
 
 
-def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], dry_run: bool, force: bool):
+def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], exclude_from: list[str], dry_run: bool, force: bool):
     # command and -param
     cmd = [
         "rsync",
@@ -82,6 +82,10 @@ def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], 
         # sync (delete if src does not contain)
         "--delete",
     ]
+    for pattern in exclude:
+        cmd.append(f"--exclude={pattern}")
+    for file in exclude_from:
+        cmd.append(f"--exclude-from={file}")
     if dry_run:
         cmd.append("-n")
     # SRC and DST are checked by 'required' option in parse.
@@ -147,17 +151,17 @@ def sync(args: argparse.Namespace):
             winsrc_list = list(map(str, winsrc_list))
 
     if iswin:
-        if args.exclude:
-            raise RuntimeError("--exclude is unavailable for Robocopy")
+        if args.exclude or args.exclude_from:
+            raise RuntimeError("--exclude and --exclude-from are unavailable for Robocopy")
         sync_win_robocopy(src_list, dst, args.exclude_file, args.exclude_dir, args.dry_run, args.force)
     elif exe_from_wsl:
-        if args.exclude:
-            raise RuntimeError("--exclude is unavailable for Robocopy")
+        if args.exclude or args.exclude_from:
+            raise RuntimeError("--exclude and --exclude-from are unavailable for Robocopy")
         sync_win_robocopy(winsrc_list, windst, args.exclude_file, args.exclude_dir, args.dry_run, args.force)
     else:
         if args.exclude_file or args.exclude_dir:
             raise RuntimeError("--exclude-file and --exclude-dir are unavailable for rsync")
-        sync_unix_rsync(src_list, dst, args.exclude, args.dry_run, args.force)
+        sync_unix_rsync(src_list, dst, args.exclude, args.exclude_from, args.dry_run, args.force)
 
     log.info("OK")
 
@@ -172,9 +176,10 @@ def main(argv: list[str]):
                         help="backup source dir"
                         " (rsync: dir/ means all entries in the dir will be copied. dir means dir directory will be copied)")
     parser.add_argument("--dst", "-d", required=True, help="backup destination dir")
-    parser.add_argument("--exclude", "-x",  help="exclude pattern (rsync)")
-    parser.add_argument("--exclude-file", "-xf", nargs="*", help="exclude file (Robocopy)")
-    parser.add_argument("--exclude-dir", "-xd", nargs="*", help="exclude dir (Robocopy)")
+    parser.add_argument("--exclude", nargs="*", default=[], help="exclude patterns (rsync)")
+    parser.add_argument("--exclude-from", nargs="*", default=[], help="exclude list files (rsync)")
+    parser.add_argument("--exclude-file", nargs="*", default=[], help="exclude files (Robocopy)")
+    parser.add_argument("--exclude-dir", nargs="*", default=[], help="exclude dirs (Robocopy)")
     parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
     parser.add_argument("--force", "-f", action="store_true", help="run without confirmation")
 
