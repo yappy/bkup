@@ -117,11 +117,11 @@ def sync(args: argparse.Namespace):
 
     # ensure SRC is dir and mkdir DST
     def expand_and_check(src: str):
-        slash = src.endswith("/")
+        add_slash = src != "/" and src.endswith("/")
         p = pathlib.Path(src).expanduser().resolve()
         if not p.is_dir():
             raise RuntimeError("SRC must be a directory")
-        if slash:
+        if add_slash:
             return str(p) + "/"
         else:
             return str(p)
