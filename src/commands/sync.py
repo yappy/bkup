@@ -135,9 +135,6 @@ def sync(args: argparse.Namespace):
     log.info(f"SRC: {src_list}")
     log.info(f"DST: {dst}")
 
-    if any(map(lambda src: dst.is_relative_to(src), src_list)):
-        raise RuntimeError(f"one of src_list is parent of {dst}")
-
     exe_from_wsl = False
     if util.is_wsl():
         winsrc_list = list(map(util.to_winpath, src_list))
@@ -150,6 +147,9 @@ def sync(args: argparse.Namespace):
             # iter<PureWindowsPath> to list[str]
             winsrc_list = list(map(str, winsrc_list))
 
+    if iswin or exe_from_wsl:
+        if any(map(lambda src: dst.is_relative_to(src), src_list)):
+            raise RuntimeError(f"one of src_list is parent of {dst}")
     if iswin:
         if args.exclude or args.exclude_from:
             raise RuntimeError("--exclude and --exclude-from are unavailable for Robocopy")
