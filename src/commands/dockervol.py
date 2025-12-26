@@ -27,8 +27,6 @@ def run_tar(project: str, volumes: list[str], ar_dst: pathlib.Path, dry_run: boo
     ar_dir = ar_dst.parent
     ar_name = ar_dst.name
 
-    # mask all permissions for group and other
-    old_umask = os.umask(0o077)
     try:
         cmd = ["docker", "run", "--rm"]
         # mount destination (bind)
@@ -38,11 +36,17 @@ def run_tar(project: str, volumes: list[str], ar_dst: pathlib.Path, dry_run: boo
             cmd += ["-v", f"{vol}:{DOCKER_MP_VOLUME}/{vol}"]
         # image
         cmd.append(DOCKER_IMAGE)
+
+        # inside the container: sh -c "umask && tar"
+        cmd += ["sh", "-c"]
         # tar command in the container
         # a: auto detect compression by EXT
         # c: create
         # f: archive file name
-        cmd += ["tar", "acf", f"{DOCKER_MP_DEST}/{ar_name}", "-C", f"{DOCKER_MP_VOLUME}", "."]
+        inner_cmd = ["umask", "077", "&&"]
+        inner_cmd += ["tar", "acf", f"{DOCKER_MP_DEST}/{ar_name}", "-C", f"{DOCKER_MP_VOLUME}", "."]
+        cmd.append(" ".join(inner_cmd))
+
         exec(cmd, dry_run)
     except subprocess.CalledProcessError as e:
         if e.returncode == 1:
@@ -50,8 +54,6 @@ def run_tar(project: str, volumes: list[str], ar_dst: pathlib.Path, dry_run: boo
             log.warning("tar exit with warning(s)")
         else:
             raise
-    finally:
-        os.umask(old_umask)
 
 
 def archive(args: argparse.Namespace):
