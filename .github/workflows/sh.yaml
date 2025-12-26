@@ -14,4 +14,4 @@ jobs:
 
     - name: Lint with shellcheck
       run: |
-        ./lint.sh
+        ./shellcheck.sh

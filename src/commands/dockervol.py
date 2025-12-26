@@ -2,7 +2,6 @@ import logging
 import argparse
 import pathlib
 import subprocess
-import os
 import datetime
 
 log = logging.getLogger(__name__)
