@@ -1,7 +1,6 @@
 # bkup
 
 [![Client Python Test](https://github.com/yappy/bkup/actions/workflows/python.yaml/badge.svg)](https://github.com/yappy/bkup/actions/workflows/python.yaml)
-[![Server Rust Test](https://github.com/yappy/bkup/actions/workflows/rust.yaml/badge.svg)](https://github.com/yappy/bkup/actions/workflows/rust.yaml)
 [![Shell Script Lint](https://github.com/yappy/bkup/actions/workflows/sh.yaml/badge.svg)](https://github.com/yappy/bkup/actions/workflows/sh.yaml)
 
 Backup manager and tools
