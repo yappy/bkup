@@ -2,6 +2,7 @@ import logging
 import argparse
 import pathlib
 import subprocess
+import os
 import platform
 import getpass
 import datetime
@@ -25,6 +26,8 @@ def exec(cmd: list[str], dry_run: bool):
 
 
 def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
+    # mask all permissions for group and other
+    old_umask = os.umask(0o077)
     try:
         # -C: change to directory DIR
         # -c: create new.
@@ -43,6 +46,8 @@ def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
         log.error("e.g. $ sudo apt install pbzip2")
         ar_dst.unlink(missing_ok=True)
         raise
+    finally:
+        os.umask(old_umask)
 
 
 def archive_win_7z(src: pathlib.PureWindowsPath, ar_dst: pathlib.PureWindowsPath, dry_run: bool):

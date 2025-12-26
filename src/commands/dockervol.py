@@ -2,6 +2,7 @@ import logging
 import argparse
 import pathlib
 import subprocess
+import os
 import datetime
 
 log = logging.getLogger(__name__)
@@ -25,6 +26,9 @@ def run_tar(project: str, volumes: list[str], ar_dst: pathlib.Path, dry_run: boo
     ar_dst = ar_dst.absolute()
     ar_dir = ar_dst.parent
     ar_name = ar_dst.name
+
+    # mask all permissions for group and other
+    old_umask = os.umask(0o077)
     try:
         cmd = ["docker", "run", "--rm"]
         # mount destination (bind)
@@ -46,6 +50,8 @@ def run_tar(project: str, volumes: list[str], ar_dst: pathlib.Path, dry_run: boo
             log.warning("tar exit with warning(s)")
         else:
             raise
+    finally:
+        os.umask(old_umask)
 
 
 def archive(args: argparse.Namespace):
