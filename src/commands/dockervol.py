@@ -76,7 +76,7 @@ def archive(args: argparse.Namespace):
 def main(argv: list[str]):
     parser = argparse.ArgumentParser(
         prog=argv[0],
-        description="Archive and compress a directory (Linux: tar.bz2, Windows: 7z)",
+        description=f"Archive and compress docker volumes ({EXT})",
     )
     parser.add_argument("--project", "-p", required=True, help="Docker compose project name")
     parser.add_argument("--volume", "-v", action="append", required=True,
