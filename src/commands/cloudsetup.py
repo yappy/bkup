@@ -3,21 +3,19 @@ import argparse
 import subprocess
 import platform
 import tempfile
+from . import util
 
 log: logging.Logger = logging.getLogger(__name__)
 
 
 def get_current_version() -> str | None:
     try:
-        proc = subprocess.run(
-            ["rclone", "version"],
-            check=True, text=True, stdout=subprocess.PIPE, stderr=None)
-        tokens = proc.stdout.split()
+        tokens = util.exec_out(["rclone", "version"]).split()
         assert len(tokens) >= 2
         assert tokens[0] == "rclone"
         assert tokens[1].startswith("v")
         return tokens[1]
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         log.warning("rclone version failed")
         log.warning(e)
         return None
@@ -27,10 +25,7 @@ def get_latest_version() -> str:
     URL = "https://downloads.rclone.org/version.txt"
 
     log.info(f"Download: {URL}")
-    proc = subprocess.run(
-        ["wget", "-q", "-O", "-", URL],
-        check=True, text=True, stdout=subprocess.PIPE, stderr=None)
-    tokens = proc.stdout.split()
+    tokens = util.exec_out(["wget", "-q", "-O", "-", URL]).split()
     assert tokens[0] == "rclone"
     assert tokens[1].startswith("v")
     return tokens[1]
@@ -73,10 +68,7 @@ def download_latest():
     tmpd = tempfile.TemporaryDirectory(delete=False, ignore_cleanup_errors=True)
     try:
         log.info(f"Downloading {URL} into {tmpd.name}")
-        subprocess.run(
-            ["wget", URL],
-            cwd=tmpd.name,
-            check=True, text=True, stdout=subprocess.PIPE, stderr=None)
+        util.exec(["wget", URL], cwd=tmpd.name)
         log.info("Download OK!")
         log.info(f"INSTALL CMD: dpkg -i {tmpd.name}/{FILE}")
     except BaseException:

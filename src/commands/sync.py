@@ -1,7 +1,6 @@
 import logging
 import argparse
 import pathlib
-import subprocess
 import multiprocessing
 import os
 from . import util
@@ -55,7 +54,7 @@ def robocopy_one(
 
     if not force:
         # + /QUIT
-        subprocess.run(cmd + ["/QUIT"], check=True)
+        util.exec(cmd + ["/QUIT"])
         log.warning("Caution!")
         log.warning("Mirror (/MIR) option may destruct the destination dir.")
         log.warning("(You can skip this by --force option for automation)")
@@ -66,11 +65,11 @@ def robocopy_one(
             raise RuntimeError("Cancelled")
 
     log.info(f"EXEC: {' '.join(cmd)}")
-    proc = subprocess.run(cmd, check=False)
-    if proc.returncode >= 8:
-        log.warning(f"Robocopy returned: {proc.returncode}")
+    returncode = util.exec(cmd, check=False)
+    if returncode >= 8:
+        log.warning(f"Robocopy returned: {returncode}")
     else:
-        log.info(f"Robocopy returned: {proc.returncode}")
+        log.info(f"Robocopy returned: {returncode}")
 
 
 def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], exclude_from: list[str], dry_run: bool, force: bool):
@@ -108,8 +107,7 @@ def sync_unix_rsync(src_list: list[str], dst: pathlib.Path, exclude: list[str], 
             log.info("Cancelled")
             raise RuntimeError("Cancelled")
 
-    log.info(f"EXEC: {' '.join(cmd)}")
-    subprocess.run(cmd, check=True)
+    util.exec(cmd)
 
 
 def sync(args: argparse.Namespace):

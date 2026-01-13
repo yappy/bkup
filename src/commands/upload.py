@@ -1,7 +1,7 @@
 import logging
 import argparse
 import pathlib
-import subprocess
+from . import util
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -29,6 +29,8 @@ def upload(args: argparse.Namespace):
         # set permission dir=700, file=600 (owner only)
         "--chmod=D700,F600"
     ]
+    if args.dry_run:
+        cmd += ["-n"]
     if args.ssh:
         cmd += [
             "-e",
@@ -42,7 +44,7 @@ def upload(args: argparse.Namespace):
     ]
 
     log.info(" ".join(cmd))
-    subprocess.run(cmd, check=True)
+    util.exec(cmd)
 
     log.info("OK")
 
