@@ -6,7 +6,7 @@ import multiprocessing
 import os
 from . import util
 
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 
 def sync_win_robocopy(

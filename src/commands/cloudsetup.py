@@ -4,7 +4,7 @@ import subprocess
 import platform
 import tempfile
 
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 
 def get_current_version() -> str | None:

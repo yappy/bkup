@@ -3,21 +3,14 @@ import argparse
 import pathlib
 import subprocess
 import datetime
+from . import util
 
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 DOCKER_IMAGE = "busybox:latest"
 DOCKER_MP_DEST = "/tmp/dest"
 DOCKER_MP_VOLUME = "/tmp/vol"
 EXT = "tar.bz2"
-
-
-def exec(cmd: list[str], dry_run: bool):
-    log.info(f"EXEC: {' '.join(cmd)}")
-    if not dry_run:
-        subprocess.run(cmd, check=True)
-    else:
-        log.info("dry_run")
 
 
 def run_tar(project: str, volumes: list[str], ar_dst: pathlib.Path, dry_run: bool):
@@ -46,7 +39,7 @@ def run_tar(project: str, volumes: list[str], ar_dst: pathlib.Path, dry_run: boo
         inner_cmd += ["tar", "acf", f"{DOCKER_MP_DEST}/{ar_name}", "-C", f"{DOCKER_MP_VOLUME}", "."]
         cmd.append(" ".join(inner_cmd))
 
-        exec(cmd, dry_run)
+        util.exec(cmd, dry_run=dry_run)
     except subprocess.CalledProcessError as e:
         if e.returncode == 1:
             # Warning (Non fatal error(s)).

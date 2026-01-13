@@ -3,7 +3,7 @@ import argparse
 import pathlib
 import subprocess
 
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 
 def upload(args: argparse.Namespace):

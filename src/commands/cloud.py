@@ -1,7 +1,7 @@
 import logging
 import argparse
 
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 
 def cloud(args: argparse.Namespace):

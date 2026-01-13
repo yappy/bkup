@@ -8,21 +8,13 @@ import getpass
 import datetime
 from . import util
 
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 CMD_UNIX = "tar"
 CMD_WIN_FROM_PROGRAM_FILES = "\\7-Zip\\7z.exe"
 EXT_UNIX = "tar.bz2"
 EXT_WIN = "7z"
 TAR_OPTS = ["--use-compress-prog=pbzip2"]
-
-
-def exec(cmd: list[str], dry_run: bool):
-    log.info(f"EXEC: {' '.join(cmd)}")
-    if not dry_run:
-        subprocess.run(cmd, check=True)
-    else:
-        log.info("dry_run")
 
 
 def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
@@ -33,7 +25,7 @@ def archive_unix_bz2(src: pathlib.Path, ar_dst: pathlib.Path, dry_run: bool):
         # -c: create new.
         # -f: specify file name.
         cmd = [CMD_UNIX, "-C", str(src), "-cf", str(ar_dst)] + TAR_OPTS + ["."]
-        exec(cmd, dry_run)
+        util.exec(cmd, dry_run=dry_run)
     except subprocess.CalledProcessError as e:
         if e.returncode == 1:
             # Warning (Non fatal error(s)).
@@ -58,7 +50,7 @@ def archive_win_7z(src: pathlib.PureWindowsPath, ar_dst: pathlib.PureWindowsPath
 
     try:
         cmd = [prog, "a", str(ar_dst), str(src)]
-        exec(cmd, dry_run)
+        util.exec(cmd, dry_run=dry_run)
     except subprocess.CalledProcessError as e:
         if e.returncode == 1:
             # Warning (Non fatal error(s)).

@@ -1,14 +1,12 @@
+import logging
 import os
 import pathlib
 import platform
 import subprocess
 
+log: logging.Logger = logging.getLogger(__name__)
 
 _is_wsl: bool = None
-
-
-def format_cmd(cmd: list[str]) -> str:
-    return " ".join(map(lambda t: f'"{t}"', list))
 
 
 def is_wsl() -> bool:

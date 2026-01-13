@@ -4,7 +4,7 @@ import pathlib
 import time
 import re
 
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 DEFAULT_KEEP_COUNT = 12
 DEFAULT_KEEP_DAYS = 365
