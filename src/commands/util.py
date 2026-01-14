@@ -3,10 +3,9 @@ import os
 import pathlib
 import platform
 import subprocess
+import re
 
 log: logging.Logger = logging.getLogger(__name__)
-
-_is_wsl: bool = None
 
 
 # Print command and run
@@ -28,6 +27,40 @@ def exec_out(cmd: list[str], *, dry_run: bool = False) -> str:
     else:
         log.info("dry_run")
         return ""
+
+
+# [not-num*]YYYYMMDD[num*]
+_PAT = re.compile(r"^.*\D(\d{8,})$")
+# archive file extensions
+_EXTS = {
+    "tar.gz",
+    "tar.bz2",
+    "tar.xz",
+    "zip",
+    "7z",
+}
+
+
+# Return true if the file name is archive file like
+def name_filter_str(path: str) -> bool:
+    tokens = path.split(".", maxsplit=1)
+    if len(tokens) < 2:
+        return False
+    noext, ext = tokens
+
+    if ext not in _EXTS:
+        return False
+
+    m = _PAT.match(noext)
+
+    return bool(m)
+
+
+def name_filter(path: pathlib.Path) -> bool:
+    return name_filter_str(path.name)
+
+
+_is_wsl: bool = None
 
 
 def is_wsl() -> bool:
