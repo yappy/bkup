@@ -12,6 +12,11 @@ def clean(args: argparse.Namespace):
     if not dst.is_dir():
         raise RuntimeError("<dst> must be a directory")
 
+    keep_count = args.keep_count
+    keep_days = args.keep_days
+    if keep_count is None and keep_days is None:
+        raise RuntimeError("At least one condition is needed")
+
     # filter children by FILE (not dir) and name_filter
     it = filter(lambda p: p.is_file(), dst.iterdir())
     it = filter(util.name_filter, it)
@@ -20,10 +25,6 @@ def clean(args: argparse.Namespace):
     # sort by mtime (newer one will be processed earlier)
     files.sort(reverse=True)
 
-    keep_count = args.keep_count
-    keep_days = args.keep_days
-    if keep_count is None and keep_days is None:
-        raise RuntimeError("At least one condition is needed")
     now = time.time()
     for i, (mtime, path) in enumerate(files):
         keep = False

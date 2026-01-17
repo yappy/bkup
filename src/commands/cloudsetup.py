@@ -38,14 +38,14 @@ def compare_version(v1: str, v2: str) -> int:
         assert len(nums) == 3
         return nums[0], nums[1], nums[2]
 
-    v1 = parse(v1)
-    v2 = parse(v2)
-    if v1[0] != v2[0]:
-        return v1[0] - v2[0]
+    tv1 = parse(v1)
+    tv2 = parse(v2)
+    if tv1[0] != tv2[0]:
+        return tv1[0] - tv2[0]
     elif v1[1] != v2[1]:
-        return v1[1] - v2[1]
+        return tv1[1] - tv2[1]
     else:
-        return v1[2] - v2[2]
+        return tv1[2] - tv2[2]
 
 
 def download_latest():

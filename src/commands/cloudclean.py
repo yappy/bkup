@@ -13,18 +13,18 @@
 import logging
 import argparse
 import json
+import datetime
 from . import util
 
 log: logging.Logger = logging.getLogger(__name__)
 
 
-def ls(remote: str, dst: str):
-    stdout = util.exec_out(["rclone", "lsjson", f"{remote}:{dst}"])
-    return json.loads(stdout)
-
-
 def cloud(args: argparse.Namespace):
     dry_run = args.dry_run
+    keep_count = args.keep_count
+    keep_days = args.keep_days
+    if keep_count is None and keep_days is None:
+        raise RuntimeError("At least one condition is needed")
 
     # print total/used/free
     util.exec(["rclone", "about", f"{args.remote}:"])
@@ -33,11 +33,19 @@ def cloud(args: argparse.Namespace):
     if args.dst != "":
         util.exec(["rclone", "mkdir", f"{args.remote}:{args.dst}"], dry_run=dry_run)
 
-    lsresult = ls(args.remote, args.dst)
-    it = map(lambda fobj: fobj['Name'], lsresult)
-    it = filter(util.name_filter_str, it)
-    for entry in it:
-        print(entry)
+    # lsjson and filter
+    stdout = util.exec_out(["rclone", "lsjson", f"{args.remote}:{args.dst}"])
+    lsresult = json.loads(stdout)
+    print(f"Received {len(lsresult)} files")
+    lsresult = list(filter(lambda e: not e["IsDir"] and util.name_filter_str(e["Name"]), lsresult))
+    print(f"{len(lsresult)} archive files")
+    # convert ISO datetime str
+    for entry in lsresult:
+        entry["ModTime"] = datetime.datetime.fromisoformat(entry["ModTime"])
+    lsresult.sort(key=lambda e: e["ModTime"], reverse=True)
+
+    for i, entry in enumerate(lsresult):
+        print(i, entry)
 
 
 def main(argv: list[str]):

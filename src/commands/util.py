@@ -60,7 +60,7 @@ def name_filter(path: pathlib.Path) -> bool:
     return name_filter_str(path.name)
 
 
-_is_wsl: bool = None
+_is_wsl: bool | None = None
 
 
 def is_wsl() -> bool:
@@ -106,7 +106,7 @@ def to_wslpath(winpath: os.PathLike) -> pathlib.Path:
         ["wslpath", "-ua", str(winpath)],
         check=True, text=True, stdout=subprocess.PIPE, stderr=None)
 
-    return proc.stdout.strip()
+    return pathlib.Path(proc.stdout.strip())
 
 
 # Win/WSL only
