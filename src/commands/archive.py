@@ -61,7 +61,6 @@ def archive_win_7z(src: pathlib.PureWindowsPath, ar_dst: pathlib.PureWindowsPath
         log.error("Exec 7z error.")
         log.error("[Hint] Did you install 7z?")
         log.error("e.g. $ winget install 7zip")
-        ar_dst.unlink(missing_ok=True)
         raise
 
 
@@ -81,6 +80,8 @@ def archive(args: argparse.Namespace):
 
     # if wsl and src can be converted to windows path, execute windows binary
     exe_from_wsl = False
+    winsrc = pathlib.PureWindowsPath()
+    windst = pathlib.PureWindowsPath()
     if util.is_wsl():
         winsrc = util.to_winpath(src)
         windst = util.to_winpath(dst)
@@ -102,7 +103,7 @@ def archive(args: argparse.Namespace):
     if iswin:
         ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
         log.info(f"DST: {ar_dst}")
-        archive_win_7z(src, ar_dst, args.dry_run)
+        archive_win_7z(pathlib.PureWindowsPath(src), pathlib.PureWindowsPath(ar_dst), args.dry_run)
     elif exe_from_wsl:
         ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
         win_ar_dst = windst / ar_dst.name
