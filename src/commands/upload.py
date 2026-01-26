@@ -43,9 +43,7 @@ def upload(args: argparse.Namespace):
         dst,
     ]
 
-    log.info(" ".join(cmd))
     util.exec(cmd)
-
     log.info("OK")
 
 

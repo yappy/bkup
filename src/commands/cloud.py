@@ -12,30 +12,41 @@
 
 import logging
 import argparse
-import json
+import pathlib
 from . import util
 
 log: logging.Logger = logging.getLogger(__name__)
 
 
-def ls(remote: str, dst: str, dry_run: bool):
-    stdout = util.exec_out(["rclone", "lsjson", f"{remote}:{dst}"], dry_run=dry_run)
-    obj = json.loads(stdout)
-    print(obj)
-
-
 def cloud(args: argparse.Namespace):
+    src = pathlib.Path(args.src)
+    dst = f"{args.remote}:{args.dst}"
+    latest = src / "latest.txt"
+
+    log.info(f"Read the latest archive: {str(latest)}")
+    with latest.open() as fin:
+        latest_file = src / fin.readline().strip()
+    log.info(f"The latest archive: {str(latest_file)}")
+    if not latest_file.is_file():
+        raise RuntimeError(f"{str(latest_file)} is not a valid file")
+
     dry_run = args.dry_run
     # print total/used/free
     util.exec(["rclone", "about", f"{args.remote}:"], dry_run=dry_run)
     # mkdir if dst doen't exist
     # dirpath "" causes SEGV
     if args.dst != "":
-        util.exec(["rclone", "mkdir", f"{args.remote}:{args.dst}"], dry_run=dry_run)
+        cmd = ["rclone", "mkdir", dst]
+        if dry_run:
+            cmd += ["-n"]
+        util.exec(cmd)
 
-    ls(args.remote, args.dst, dry_run)
+    cmd = ["rclone", "copy", str(latest_file), dst]
+    if dry_run:
+        cmd += ["-n"]
 
-    raise RuntimeError("Not Implemented")
+    util.exec(cmd)
+    log.info("OK")
 
 
 def main(argv: list[str]):
