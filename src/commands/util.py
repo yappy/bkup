@@ -85,7 +85,7 @@ def is_win() -> bool:
     return platform.system() == "Windows"
 
 
-def to_winpath(wslpath: str | os.PathLike) -> pathlib.PureWindowsPath:
+def to_winpath(wslpath: str | os.PathLike) -> pathlib.PureWindowsPath | None:
     assert is_wsl()
 
     proc = subprocess.run(
@@ -94,7 +94,7 @@ def to_winpath(wslpath: str | os.PathLike) -> pathlib.PureWindowsPath:
     result = proc.stdout.strip()
 
     if result.startswith("\\\\wsl"):
-        raise RuntimeError(f"Cannot convert: {str(wslpath)} > {result}")
+        return None
     else:
         return pathlib.PureWindowsPath(result)
 
