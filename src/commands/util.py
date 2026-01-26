@@ -30,7 +30,7 @@ def exec_out(cmd: list[str], *, dry_run: bool = False) -> str:
 
 
 # [not-num*]YYYYMMDD[num*]
-_PAT = re.compile(r"^.*\D(\d{8,})$")
+_PAT = re.compile(r"^(.*)\D(\d{8,})$")
 # archive file extensions
 _EXTS = {
     "tar.gz",
@@ -41,8 +41,8 @@ _EXTS = {
 }
 
 
-# Return true if the file name is archive file like
-def name_filter_str(path: str) -> bool:
+def name_parse_str(path: str) -> tuple[str, str] | None:
+    # split at the first "."
     tokens = path.split(".", maxsplit=1)
     if len(tokens) < 2:
         return False
@@ -52,8 +52,19 @@ def name_filter_str(path: str) -> bool:
         return False
 
     m = _PAT.match(noext)
+    if m:
+        return m.group(1), m.group(2)
+    else:
+        return None
 
-    return bool(m)
+
+def name_parse(path: pathlib) -> tuple[str, str] | None:
+    return name_parse_str(path.name)
+
+
+# Return true if the file name is archive file like
+def name_filter_str(path: str) -> bool:
+    return name_parse_str(path) is not None
 
 
 def name_filter(path: pathlib.Path) -> bool:
