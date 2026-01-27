@@ -42,6 +42,8 @@ def cloud(args: argparse.Namespace):
         util.exec(cmd)
 
     cmd = ["rclone", "copy", str(latest_file), dst]
+    if args.progress:
+        cmd += ["-P"]
     if dry_run:
         cmd += ["-n"]
 
@@ -58,6 +60,7 @@ def main(argv: list[str]):
     parser.add_argument("--src", "-s", required=True, help="archive dir")
     parser.add_argument("--remote", "-r", required=True, help="backup destination remote name")
     parser.add_argument("--dst", "-d", default="", help="backup destination dir on remote (remote:HERE)")
+    parser.add_argument("--progress", "-P", action="store_true", help="show progress")
     parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
 
     args = parser.parse_args(argv[1:])
