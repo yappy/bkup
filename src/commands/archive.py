@@ -95,22 +95,23 @@ def archive(args: argparse.Namespace):
         user = util.get_winuser()
     else:
         user = getpass.getuser()
-    # the same host name on windows and wsl
     host = platform.node()
     dt_now = datetime.datetime.now()
     dt_str = dt_now.strftime('%Y%m%d%H%M')
+    # tag default = user
+    tag = args.tag if args.tag is not None else user
 
     if iswin:
-        ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
+        ar_dst = dst / f"{tag}_{host}_{dt_str}.{EXT_WIN}"
         log.info(f"DST: {ar_dst}")
         archive_win_7z(pathlib.PureWindowsPath(src), pathlib.PureWindowsPath(ar_dst), args.dry_run)
     elif exe_from_wsl:
-        ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_WIN}"
+        ar_dst = dst / f"{tag}_{host}_{dt_str}.{EXT_WIN}"
         win_ar_dst = windst / ar_dst.name
         log.info(f"DST: {win_ar_dst}")
         archive_win_7z(winsrc, win_ar_dst, args.dry_run)
     else:
-        ar_dst = dst / f"{user}_{host}_{dt_str}.{EXT_UNIX}"
+        ar_dst = dst / f"{tag}_{host}_{dt_str}.{EXT_UNIX}"
         log.info(f"DST: {ar_dst}")
         archive_unix_bz2(src, ar_dst, args.dry_run)
 
@@ -129,6 +130,7 @@ def main(argv: list[str]):
     )
     parser.add_argument("--src", "-s", required=True, help="backup source dir")
     parser.add_argument("--dst", "-d", required=True, help="backup destination dir")
+    parser.add_argument("--tag", "-t", help="tag string for archive file name (default: user_name)")
     parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
 
     args = parser.parse_args(argv[1:])
