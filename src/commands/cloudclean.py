@@ -45,7 +45,25 @@ def cloud(args: argparse.Namespace):
     lsresult.sort(key=lambda e: e["ModTime"], reverse=True)
 
     for i, entry in enumerate(lsresult):
-        print(i, entry)
+        keep = False
+        if keep_count is not None:
+            if i < keep_count:
+                log.info(f"Keep by count ({i + 1}): {entry['Name']}")
+                keep = True
+        if keep_days is not None:
+            # Convert to days difference
+            now = datetime.datetime.now(datetime.timezone.utc)
+            t = (now - entry["ModTime"]).days
+            if t <= keep_days:
+                log.info(f"Keep by days ({t}): {entry['Name']}")
+                keep = True
+
+        if not keep:
+            log.info(f"delete: {entry['Name']}")
+            if dry_run:
+                log.info("(dry run)")
+            else:
+                util.exec(["rclone", "delete", f"{args.remote}:{args.dst}/{entry['Name']}"])
 
 
 def main(argv: list[str]):
