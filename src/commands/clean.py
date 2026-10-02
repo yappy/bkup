@@ -55,7 +55,7 @@ def main(argv: list[str]):
         epilog="A file will be deleted only if it is out of --keep-count AND out of --keep-days"
     )
     parser.add_argument("--dst", "-d", required=True, help="archive files dir")
-    parser.add_argument("--dry_run", "-n", action="store_true", help="dry run")
+    parser.add_argument("--dry-run", "-n", action="store_true", help="dry run")
     parser.add_argument("--keep-count", type=int, help="keep the latest N files")
     parser.add_argument("--keep-days", type=int, help="keep files not expired")
 

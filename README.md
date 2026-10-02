@@ -139,7 +139,7 @@ Unix / Windows で使用ツールを自動スイッチします。
 
 ```sh
 $ ./src/bkup.py clean -h
-usage: clean [-h] --dst DST [--dry_run] [--keep-count KEEP_COUNT]
+usage: clean [-h] --dst DST [--dry-run] [--keep-count KEEP_COUNT]
              [--keep-days KEEP_DAYS]
 
 Clean old archive files
@@ -147,7 +147,7 @@ Clean old archive files
 options:
   -h, --help            show this help message and exit
   --dst, -d DST         archive files dir
-  --dry_run, -n         dry run
+  --dry-run, -n         dry run
   --keep-count KEEP_COUNT
                         keep the latest N files
   --keep-days KEEP_DAYS
