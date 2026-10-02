@@ -146,6 +146,24 @@ class TestFoo(unittest.TestCase):
             result = list(dir.iterdir())
             self.assertEqual(len(result), 10)
 
+    def test_clean_dry_run(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            directory = pathlib.Path(tmpdir)
+            older = directory / "backup_20240101.tar.bz2"
+            newer = directory / "backup_20240102.tar.bz2"
+            older.touch()
+            newer.touch()
+            os.utime(older, (1, 1))
+            os.utime(newer, (2, 2))
+
+            self.call_main(["bkup.py", "clean", "--dst", tmpdir, "--keep-count", "1", "--dry-run"])
+            self.assertTrue(older.exists())
+            self.assertTrue(newer.exists())
+
+            self.call_main(["bkup.py", "clean", "--dst", tmpdir, "--keep-count", "1"])
+            self.assertFalse(older.exists())
+            self.assertTrue(newer.exists())
+
     def test_archive(self):
         # python 3.9 dependent
         with (tempfile.TemporaryDirectory() as src,

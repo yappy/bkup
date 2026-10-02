@@ -43,7 +43,8 @@ def clean(args: argparse.Namespace):
             log.info(f"delete: {str(path)}")
             if args.dry_run:
                 log.info("(dry run)")
-            path.unlink()
+            else:
+                path.unlink()
 
     log.info("OK")
 
