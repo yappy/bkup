@@ -45,11 +45,11 @@ def name_parse_str(path: str) -> tuple[str, str] | None:
     # split at the first "."
     tokens = path.split(".", maxsplit=1)
     if len(tokens) < 2:
-        return False
+        return None
     noext, ext = tokens
 
     if ext not in _EXTS:
-        return False
+        return None
 
     m = _PAT.match(noext)
     if m:

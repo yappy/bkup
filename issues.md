@@ -1,10 +1,13 @@
 # リポジトリレビュー
 
-対象コミットは `9abfe95` です。最優先は、`clean` と `cloudclean` がバックアップと無関係なファイルまで削除する問題です。
+レビュー対象コミットは `9abfe95` です。未対応は P1 が1件、P2 が3件です。
 
 ## P1
 
-1. **`clean` と `cloudclean` がアーカイブ以外のファイルを削除する。** `name_parse_str()` は未対応の拡張子に `False` を返しますが、呼び出し側は `is not None` で判定するため、`notes.txt` や `backup.log` も削除候補に入ります。両コマンドで `--keep-count 0` を指定し、`notes.txt` が削除されることを確認しました。 [src/commands/util.py:44](src/commands/util.py#L44)
+1. **［修正済み］`clean` と `cloudclean` がアーカイブ以外のファイルを削除する。** `name_parse_str()` は未対応の拡張子に `False` を返しますが、呼び出し側は `is not None` で判定するため、`notes.txt` や `backup.log` も削除候補に入ります。両コマンドで `--keep-count 0` を指定し、`notes.txt` が削除されることを確認しました。 [src/commands/util.py:44](src/commands/util.py#L44)
+
+   拡張子がない場合と未対応の拡張子の場合に `None` を返すよう修正しました。回帰テストを含む全6件が通過し、`cloudclean` でも rclone のローカルバックエンドで対象のアーカイブだけが削除されることを確認しました。 [src/tests/test_client.py:149](src/tests/test_client.py#L149)
+
 2. **自動バックアップが失敗後も削除処理へ進み、終了コード `0` を返す。** WSL・Windows 向けスクリプトは各処理の出力を `tee` に流し、Python 側の失敗を検知せずに続行します。WSL 向けスクリプトに存在しないコピー元を渡したところ、`archive` の失敗後に `clean` が実行され、終了コードは `0` でした。 [scripts/main_wsl.sh:32](scripts/main_wsl.sh#L32) · [scripts/main_win.sh:33](scripts/main_win.sh#L33)
 
 ## P2

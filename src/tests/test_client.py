@@ -146,6 +146,17 @@ class TestFoo(unittest.TestCase):
             result = list(dir.iterdir())
             self.assertEqual(len(result), 10)
 
+    def test_clean_preserves_non_archives(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            directory = pathlib.Path(tmpdir)
+            non_archives = {"README", "notes.txt", "undated.tar.bz2"}
+            for name in non_archives | {"backup_20240101.tar.bz2"}:
+                (directory / name).touch()
+
+            self.call_main(["bkup.py", "clean", "--dst", tmpdir, "--keep-count", "0"])
+
+            self.assertEqual({path.name for path in directory.iterdir()}, non_archives)
+
     def test_clean_dry_run(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             directory = pathlib.Path(tmpdir)
