@@ -221,8 +221,7 @@ class TestFoo(unittest.TestCase):
 
             # check latest.txt
             with latest_file.open("r") as fin:
-                line = fin.readline().strip()
-                line == after[0]
+                self.assertEqual(pathlib.Path(fin.readline().strip()), archive_file.resolve())
 
             # extract and check the archive file
             self.extract_archive(archive_file, extdir)
@@ -236,6 +235,21 @@ class TestFoo(unittest.TestCase):
                     break
 
             self.check_tree(srcdir, extdir)
+
+    def test_archive_dry_run_preserves_latest(self):
+        with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as dst:
+            latest = pathlib.Path(dst) / "latest.txt"
+            argv = ["bkup.py", "archive", "--src", src, "--dst", dst, "--tag", "preview", "--dry-run"]
+
+            with self.subTest(latest_exists=False):
+                self.call_main(argv)
+                self.assertFalse(latest.exists())
+
+            with self.subTest(latest_exists=True):
+                original = b"backup_20240101.tar.bz2\n"
+                latest.write_bytes(original)
+                self.call_main(argv)
+                self.assertEqual(latest.read_bytes(), original)
 
 
 if __name__ == '__main__':

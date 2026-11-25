@@ -115,11 +115,12 @@ def archive(args: argparse.Namespace):
         log.info(f"DST: {ar_dst}")
         archive_unix_bz2(src, ar_dst, args.dry_run)
 
-    # write ar_dst (not win_ar_dst) to latest.txt
-    latest = dst / "latest.txt"
-    log.info(f"Write the latest archive name: {str(latest)}")
-    with latest.open("w") as fout:
-        print(ar_dst, file=fout)
+    if not args.dry_run:
+        # write ar_dst (not win_ar_dst) to latest.txt
+        latest = dst / "latest.txt"
+        log.info(f"Write the latest archive name: {str(latest)}")
+        with latest.open("w") as fout:
+            print(ar_dst, file=fout)
     log.info(f"OK: {ar_dst}")
 
 
