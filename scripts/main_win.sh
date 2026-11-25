@@ -7,6 +7,8 @@
 
 # Check required parameters
 set -u
+# Propagate backup command failures through tee.
+set -o pipefail
 # !!! Required Variables !!!
 echo "SRC_DIRS:   ${SRC_DIRS}"
 echo "DST_DIR:    ${DST_DIR}"
@@ -36,14 +38,14 @@ sync \
 --dst "${BACKUP_DIR}" \
 --force \
 2>&1 \
-| tee -a "${LOG_FILE}"
+| tee -a "${LOG_FILE}" || return "$?"
 
 python3 "${SCRIPT_DIR}/bkup.py" \
 archive \
 --src "${BACKUP_DIR}" \
 --dst "${ARCHIVE_DIR}" \
 2>&1 \
-| tee -a "${LOG_FILE}"
+| tee -a "${LOG_FILE}" || return "$?"
 
 python3 "${SCRIPT_DIR}/bkup.py" \
 clean \
@@ -51,7 +53,7 @@ clean \
 --keep-count "${KEEP_COUNT}" \
 --keep-days "${KEEP_DAYS}" \
 2>&1 \
-| tee -a "${LOG_FILE}"
+| tee -a "${LOG_FILE}" || return "$?"
 
 if [ -n "${REMOTE}" ]; then
     python3 "${SCRIPT_DIR}/bkup.py" \
@@ -59,7 +61,7 @@ if [ -n "${REMOTE}" ]; then
     --src "${ARCHIVE_DIR}" \
     --dst "${REMOTE}" \
     2>&1 \
-    | tee -a "${LOG_FILE}"
+    | tee -a "${LOG_FILE}" || return "$?"
 fi
 
 echo -------------------------------------------------------------------------------- | tee -a "${LOG_FILE}"
