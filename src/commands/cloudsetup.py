@@ -15,6 +15,8 @@ def get_current_version() -> str | None:
         assert tokens[0] == "rclone"
         assert tokens[1].startswith("v")
         return tokens[1]
+    except FileNotFoundError:
+        return None
     except subprocess.CalledProcessError as e:
         log.warning("rclone version failed")
         log.warning(e)
@@ -42,7 +44,7 @@ def compare_version(v1: str, v2: str) -> int:
     tv2 = parse(v2)
     if tv1[0] != tv2[0]:
         return tv1[0] - tv2[0]
-    elif v1[1] != v2[1]:
+    elif tv1[1] != tv2[1]:
         return tv1[1] - tv2[1]
     else:
         return tv1[2] - tv2[2]

@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 import test.support
 from src import bkup
 import os
@@ -93,6 +94,26 @@ class TestFoo(unittest.TestCase):
     def test_help(self):
         stdout, stderr = self.call_main(["bkup.py", "-h"])
         self.assertTrue(stdout or stderr)
+
+    def test_cloudsetup_downloads_when_rclone_is_unavailable_or_older(self):
+        cloudsetup = bkup.commands.cloudsetup
+        cases = (
+            (None, True),
+            ("v1.69.0", True),
+            ("v1.70.0", False),
+            ("v1.70.1", False),
+            ("v1.100.0", False),
+        )
+        for current, should_download in cases:
+            with self.subTest(current=current):
+                version_result = FileNotFoundError("rclone") if current is None else f"rclone {current}\n"
+                with (
+                    mock.patch.object(cloudsetup.util, "exec_out", side_effect=[version_result, "rclone v1.70.0\n"]),
+                    mock.patch.object(cloudsetup, "download_latest") as download_latest,
+                ):
+                    self.call_main(["bkup.py", "cloudsetup"])
+
+                self.assertEqual(download_latest.call_count, int(should_download))
 
     def test_sync(self):
         with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as dst:

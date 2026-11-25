@@ -1,6 +1,6 @@
 # リポジトリレビュー
 
-レビュー対象コミットは `9abfe95` です。P1 は2件とも修正済みで、未対応は P2 が3件です。
+レビュー対象コミットは `9abfe95` です。P1 は2件とも修正済みで、未対応は P2 が2件です。
 
 ## P1
 
@@ -16,7 +16,9 @@
 
 3. **`archive --dry-run` が `latest.txt` を上書きする。** プレビューでも、`latest.txt` に作成予定のアーカイブのパスが記録されます。正常なバックアップの直後に別タグでプレビューすると、後続の `upload` が存在しないファイルを参照して失敗することを確認しました。 [src/commands/archive.py:118](src/commands/archive.py#L118)
 4. **`sync` が Robocopy の失敗を呼び出し元に伝えない。** Robocopy が失敗を示す終了コード `8` 以上を返しても、警告だけを出し、`sync` は最後に `OK` を記録します。自動実行では、不完全な同期先をそのままアーカイブする可能性があります。コード上で確認しました。 [src/commands/sync.py:68](src/commands/sync.py#L68)
-5. **`cloudsetup` が rclone の未インストール時やマイナー更新時に機能しない。** 実行ファイルがない場合の `FileNotFoundError` が伝播し、ダウンロード処理まで到達しません。また、バージョン比較が文字列の2文字目を参照するため、`v1.69.0` と `v1.70.0` を同じバージョンと判定します。 [src/commands/cloudsetup.py:11](src/commands/cloudsetup.py#L11) · [src/commands/cloudsetup.py:43](src/commands/cloudsetup.py#L43)
+5. **［修正済み］`cloudsetup` が rclone の未インストール時やマイナー更新時に機能しない。** 実行ファイルがない場合の `FileNotFoundError` が伝播し、ダウンロード処理まで到達しません。また、バージョン比較が文字列の2文字目を参照するため、`v1.69.0` と `v1.70.0` を同じバージョンと判定します。
+
+   実行ファイルが見つからない場合は未インストールとして扱い、バージョンの各要素を数値で比較するよう修正しました。Linux で `rclone` と `wget` の代替コマンドを使い、未インストール時と更新が必要な場合にダウンロードへ進むこと、同じか新しいバージョンではダウンロードを省くこと、ダウンロードに失敗した場合に一時ディレクトリを削除することを確認しました。 [src/commands/cloudsetup.py:12](src/commands/cloudsetup.py#L12) · [src/tests/test_client.py:98](src/tests/test_client.py#L98)
 
 ## 検証範囲
 
